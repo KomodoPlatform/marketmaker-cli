@@ -26,19 +26,6 @@ endif ()
 set(CFLAGS_LIST ${CMAKE_C_FLAGS})
 separate_arguments(CFLAGS_LIST)
 
-execute_process(COMMAND "${CMAKE_C_COMPILER}" ${CFLAGS_LIST} -Q --help=target
-        COMMAND "awk" "\$1 == \"-march=\" { print \$2 }"
-        RESULT_VARIABLE res
-        OUTPUT_VARIABLE MARCH
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-if (NOT res EQUAL 0)
-    message(FATAL_ERROR "Failed to get GCC target machine")
-endif ()
-if (NOT MARCH)
-    message(FATAL_ERROR "Unable to discover effective architecture on GCC invocation")
-endif ()
-message(STATUS "Architecture: ${MARCH}")
-
 set(SOURCE_FILES
         src/main/mmcli.c
         src/main/property.c
@@ -109,7 +96,7 @@ set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
 set(CPACK_RPM_PACKAGE_RELEASE ${PACKAGE_RELEASE})
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MarketMaker Command-Line Interface")
-SET(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${VERSION_SHORT}-${MARCH})
+SET(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${VERSION_SHORT})
 set(CPACK_RPM_SPEC_INSTALL_POST "/bin/true")
 include(CPack)
 
