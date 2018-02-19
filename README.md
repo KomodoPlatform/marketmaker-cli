@@ -23,3 +23,14 @@ Instead of duplicating more than 50 API calls, this application "__learns__" the
 ```shell
 $ ./marketmaker-cli _refresh
 ```
+
+# How to build
+
+The build system is based on CMake 3.2+. Follow these steps to build the application:
+
+```source
+mkdir build
+cd build
+cmake ..
+make
+```
