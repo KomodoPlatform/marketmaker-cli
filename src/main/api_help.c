@@ -21,7 +21,7 @@
 #include "property.h"
 
 #include <errno.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #define INITIAL_CAPACITY 50
 

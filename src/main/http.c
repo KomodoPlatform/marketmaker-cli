@@ -19,7 +19,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <malloc.h>
 #include <stdlib.h>
 #include <netdb.h>
 #include <stdint.h>
