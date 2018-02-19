@@ -23,21 +23,21 @@
 
 #define INITIAL_CAPACITY 10
 
-static char *load_file_contents(const char *path, err_t *err);
+static char *load_file_contents(const char *path, err_t *errp);
 
-PropertyGroup *parse_properties(const char *str, err_t *err)
+PropertyGroup *parse_properties(const char *str, err_t *errp)
 {
-    *err = 0;
+    *errp = 0;
     char *copy = strdup(str);
     if (copy == NULL) {
-        *err = ENOMEM;
+        *errp = ENOMEM;
         return NULL;
     }
     size_t capacity = INITIAL_CAPACITY;
     PropertyGroup *group = realloc_properties(NULL, capacity);
     if (group == NULL) {
         free(copy);
-        *err = ENOMEM;
+        *errp = ENOMEM;
         return NULL;
     }
     group->size = 0;
@@ -50,23 +50,17 @@ PropertyGroup *parse_properties(const char *str, err_t *err)
         if (*s != '\0') {
             char *sep;
             if ((sep = strchr(s, '=')) == NULL) {
-                *err = EINVAL;
+                *errp = EINVAL;
                 break;
             }
             *sep++   = '\0';
-            if (group->size == capacity) {
-                capacity *= 2;
-                group = realloc_properties(group, capacity);
-                if (group == NULL) {
-                    *err = ENOMEM;
-                    break;
-                }
+            group = add_property(group, strtrim(s), strtrim(sep), &capacity, errp);
+            if (*errp != 0) {
+                break;
             }
-            group->properties[group->size].key     = strtrim(s);
-            group->properties[group->size++].value = strtrim(sep);
         }
     }
-    if (*err == 0) {
+    if (*errp == 0) {
         return realloc_properties(group, group->size);
     }
     free(copy);
@@ -76,14 +70,17 @@ PropertyGroup *parse_properties(const char *str, err_t *err)
 PropertyGroup *load_properties(const char *path, err_t *err) {
     char * buffer = load_file_contents(path, err);
     PropertyGroup *group = (*err == 0) ? parse_properties(buffer, err) : NULL;
+    if (group != NULL) {
+        sort_properties(group);
+    }
     free(buffer);
     return group;
 }
 
-char *load_file_contents(const char *path, err_t *err) {
+char *load_file_contents(const char *path, err_t *errp) {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
-        *err = errno;
+        *errp = errno;
         return NULL;
     }
     char *buffer = NULL;
@@ -95,7 +92,7 @@ char *load_file_contents(const char *path, err_t *err) {
             fread(buffer, 1, (size_t) length, file);
             buffer[length] = '\0';
         } else {
-            *err = ENOMEM;
+            *errp = ENOMEM;
         }
     }
     fclose(file);
@@ -132,4 +129,49 @@ const char *find_property(const PropertyGroup *group, const char *key)
         }
     }
     return NULL;
+}
+
+PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp)
+{
+    *errp = 0;
+    if (group->size == *capacity) {
+        *capacity *= 2;
+        group = realloc_properties(group, *capacity);
+        if (group == NULL) {
+            *errp = ENOMEM;
+            return NULL;
+        }
+    }
+    Property *prop = &group->properties[group->size];
+    prop->key = key;
+    prop->value = value;
+    group->size++;
+
+    return group;
+}
+
+size_t longest_key_len(const PropertyGroup *group)
+{
+    size_t the_key_len = 0;
+    for (int i = 0; i < group->size; i++) {
+        Property *prop = &group->properties[i];
+        size_t klen = strlen(prop->key);
+        if (klen > the_key_len) {
+            the_key_len = klen;
+        }
+    }
+    return the_key_len;
+}
+
+static int prop_compare(const void *p1, const void *p2) {
+    int cmp = strcmp(((const Property *) p1)->key, ((const Property *) p2)->key);
+    if (cmp == 0) {
+        cmp = strcmp(((const Property *) p1)->value, ((const Property *) p2)->value);
+    }
+    return cmp;
+}
+
+void sort_properties(const PropertyGroup *group)
+{
+    qsort(group->properties, group->size, sizeof(Property), prop_compare);
 }

@@ -67,19 +67,10 @@ PropertyGroup *parse_api_help(const char *str, err_t *errp)
             *sep++ = '\0';
             const char *key = strtrim(s);
             if (*key != '\0') {
-                if (group->size == capacity) {
-                    capacity *= 2;
-                    group = realloc_properties(group, capacity);
-                    if (group == NULL) {
-                        *errp = ENOMEM;
-                        break;
-                    }
+                group = add_property(group, key, strip_params(strtrim(sep)), &capacity, errp);
+                if (*errp != 0) {
+                    break;
                 }
-                char *value = strtrim(sep);
-                Property *prop = &group->properties[group->size];
-                prop->key = key;
-                prop->value = strip_params(value);
-                group->size++;
             }
         }
         s = p;

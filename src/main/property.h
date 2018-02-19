@@ -37,11 +37,17 @@ typedef struct {
 
 PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity);
 
-PropertyGroup *parse_properties(const char *str, err_t *err);
+PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp);
+
+size_t longest_key_len(const PropertyGroup *group);
+
+PropertyGroup *parse_properties(const char *str, err_t *errp);
 
 PropertyGroup *load_properties(const char *path, err_t *err);
 
 bool save_properties(const PropertyGroup *group, const char *path, err_t *err);
+
+void sort_properties(const PropertyGroup *group);
 
 const char *find_property(const PropertyGroup *group, const char *key);
 

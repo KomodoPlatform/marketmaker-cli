@@ -17,17 +17,19 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "path.h"
 
-char *home_path(const char *path, char *dest, size_t len)
+char *home_path(const char *path)
 {
     const char *homedir;
 
     if ((homedir = getenv("HOME")) == NULL) {
         homedir = getpwuid(getuid())->pw_dir;
     }
-    snprintf(dest, len, "%s/%s", homedir, path);
+    char *dest = malloc(strlen(homedir) + 1 + strlen(path) + 1);
+    sprintf(dest, "%s/%s", homedir, path);
     return dest;
 }

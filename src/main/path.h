@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-char *home_path(const char *path, char *dest, size_t len);
+char *home_path(const char *path);
 
 #ifdef __cplusplus
 };

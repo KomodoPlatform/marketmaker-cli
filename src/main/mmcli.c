@@ -25,10 +25,15 @@
 #include "json.h"
 #include "path.h"
 
-#define CONFIG_PATH     ".mmcli.config"
-#define API_PATH        ".mmcli.api"
+static const char *const CONFIG_PATH  = ".mmcli.config";
+static const char *const API_PATH     = ".mmcli.api";
+static const char *const KEY_URL      = "url";
+static const char *const KEY_USERPASS = "userpass";
 
-static void print_help(const char *programPath);
+static const char *configPath;
+static const char *apiPath;
+
+static void print_help(const char *programPath, const PropertyGroup *api);
 
 static void print_syserr(const char *context, err_t err);
 
@@ -42,12 +47,19 @@ static PropertyGroup *handle_api(const char *method, const char *programPath, co
 static PropertyGroup *build_param_list(const char *method, const char *userpass, const char *paramNames,
                                        int argc, char *argv[], err_t *errp);
 
+static void init_globals();
+
+static void print_help_api(FILE *out, const PropertyGroup *api);
+
 int main(int argc, char *argv[])
 {
+    init_globals();
+
     const char *programPath = argv[0];
     err_t err;
     if (argc <= 1) {
-        print_help(programPath);
+        PropertyGroup *api = load_properties(apiPath, &err);
+        print_help(programPath, api);
         return EXIT_SUCCESS;
     }
     const char *method = argv[1];
@@ -60,7 +72,7 @@ int main(int argc, char *argv[])
     }
 
     URL url;
-    const char *strUrl = find_property(config, "url");
+    const char *strUrl = find_property(config, KEY_URL);
     if (!parse_url(strUrl, &url, &err)) {
         print_err("Invalid URL: %s", strUrl);
     }
@@ -76,10 +88,10 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    const char *userpass = find_property(config, "userpass");
+    const char *userpass = find_property(config, KEY_USERPASS);
     PropertyGroup *paramList = build_param_list(method, userpass, paramNames, argc, argv, &err);
     if (err != 0) {
-        print_err("Wrong number of parameters: %d", argc);
+        print_err("Wrong number of arguments given: %d\nParameters: %s", argc, paramNames);
         return EXIT_FAILURE;
     }
     char *jsonRequest = build_json_request(paramList, &err);
@@ -94,6 +106,12 @@ int main(int argc, char *argv[])
     }
     puts(response);
     return EXIT_SUCCESS;
+}
+
+void init_globals()
+{
+    apiPath = home_path(API_PATH);
+    configPath = home_path(CONFIG_PATH);
 }
 
 PropertyGroup *build_param_list(const char *method, const char *userpass, const char *paramNames,
@@ -111,13 +129,9 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
         *errp = ENOMEM;
         return NULL;
     }
-    Property *prop = &paramList->properties[0];
-    prop->key = "method";
-    prop->value = method;
-    ++prop;
-    prop->key = "userpass";
-    prop->value = userpass;
-    paramList->size = 2;
+    paramList->size = 0;
+    add_property(paramList, "method", method, &capacity, errp);
+    add_property(paramList, KEY_USERPASS, userpass, &capacity, errp);
     char *next_param = NULL;
     for (char *s = names; s != NULL; s = next_param) {
         if ((next_param = strchr(s, ',')) != NULL) {
@@ -130,19 +144,11 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
             *errp = EINVAL;
             break;
         }
-        if (paramList->size == capacity) {
-            capacity *= 2;
-            paramList = realloc_properties(paramList, capacity);
-            if (paramList == NULL) {
-                *errp = ENOMEM;
-                break;
-            }
-        }
-        Property *prop = &paramList->properties[paramList->size];
-        prop->key = s;
-        prop->value = *argv++;
         --argc;
-        paramList->size++;
+        paramList = add_property(paramList, s, *argv++, &capacity, errp);
+        if (*errp != 0) {
+            break;
+        }
     }
     // check if user provided extra parameters
     if ((*errp == 0) && (argc > 0)) {
@@ -161,7 +167,7 @@ void print_err(const char *fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-    fputs("***", stderr);
+    fputs("***\n", stderr);
     vfprintf(stderr, fmt, ap);
     fputc('\n', stderr);
     va_end(ap);
@@ -172,26 +178,47 @@ void print_syserr(const char *context, err_t err)
     fprintf(stderr, "***Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
 }
 
-void print_help(const char *programPath)
+void print_help(const char *programPath, const PropertyGroup *api)
 {
     fprintf(stderr, "Syntax: %s [_config URL USERPASS | _refresh | method params*]\n", programPath);
+    if (api != NULL) {
+        print_help_api(stderr, api);
+    }
+}
+
+void print_help_api(FILE *out, const PropertyGroup *api)
+{
+    static const char dashes[] = "=============================================";
+    size_t max_key_len = longest_key_len(api) + 2;
+    fprintf(out, "\n%-*s  %s\n%.*s  %s\n", (int) max_key_len, "Method", "Parameters",
+            (int) max_key_len, dashes, dashes);
+    for (int i = 0; i < api->size; i++) {
+        Property *prop = &api->properties[i];
+        size_t klen = strlen(prop->key);
+        fputs(prop->key, out);
+        fputc(' ', out);
+        for (; klen < max_key_len; klen++) {
+            fputc('.', out);
+        }
+        fputc(' ', out);
+        fputs(prop->value, out);
+        fputc('\n', out);
+    }
 }
 
 PropertyGroup *handle_config(const char *method, const char *programPath, int argc, char **argv, err_t *errp)
 {
     *errp = 0;
-    char configPath[128];
-    home_path(CONFIG_PATH, configPath, sizeof(configPath));
     if (strequal(method, "_config")) {
         if (argc != 2) {
-            print_help(programPath);
+            print_help(programPath, NULL);
             return NULL;
         }
         const char *url = argv[0];
         const char *userpass = argv[1];
         Property props[] = {
-                {"url",      url},
-                {"userpass", userpass}
+                {KEY_URL,      url},
+                {KEY_USERPASS, userpass}
         };
         PropertyGroup config = {2, props};
         if (!save_properties(&config, configPath, errp)) {
@@ -212,35 +239,25 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
     return config;
 }
 
-PropertyGroup *
-handle_api(const char *method, const char *programPath, const URL *url, int argc, err_t *errp)
+PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc, err_t *errp)
 {
     *errp = 0;
-    char apiPath[128];
-    home_path(API_PATH, apiPath, sizeof(apiPath));
-    if (strequal(method, "_refresh")) {
-        if (argc != 0) {
-            print_help(programPath);
-            return NULL;
-        }
-        PropertyGroup *api = fetch_api(url, errp);
-        if (*errp != 0) {
-            print_syserr("fetching api", *errp);
-            return NULL;
-        }
-        if (!save_properties(api, apiPath, errp)) {
-            print_syserr("saving api", *errp);
-            return NULL;
-        }
+    const bool doRefresh = strequal(method, "_refresh");
+    if (doRefresh && (argc != 0)) {
+        print_help(programPath, NULL);
         return NULL;
     }
 
-    PropertyGroup *api = load_properties(apiPath, errp);
-    if (*errp != 0) {
-        if (*errp != ENOENT) {
+    PropertyGroup *api = NULL;
+    if (!doRefresh) {
+        api = load_properties(apiPath, errp);
+        if ((*errp != 0) && (*errp != ENOENT)) {
             print_syserr("loading api", *errp);
             return NULL;
         }
+    }
+
+    if (api == NULL) {
         api = fetch_api(url, errp);
         if (*errp != 0) {
             print_syserr("fetching api", *errp);
@@ -252,5 +269,5 @@ handle_api(const char *method, const char *programPath, const URL *url, int argc
         }
     }
 
-    return api;
+    return doRefresh ? NULL : api;
 }
