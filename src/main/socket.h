@@ -13,33 +13,40 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef MARKETMAKER_CLI_STRUTIL_H
-#define MARKETMAKER_CLI_STRUTIL_H
+#ifndef MARKETMAKER_CLI_SOCKET_H
+#define MARKETMAKER_CLI_SOCKET_H
 
-#include <string.h>
-#include <stdbool.h>
-#include <monetary.h>
+#include "url.h"
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-static inline bool strequal(const char *s1, const char *s2) {
-    return strcmp(s1, s2) == 0;
-}
+typedef int SOCKET;
 
-static inline bool strequalIgnoreCase(const char *s1, const char *s2) {
-    return strcasecmp(s1, s2) == 0;
-}
+#define INVALID_SOCKET  ((SOCKET) - 1)
 
-char *strtrim(char *s);
+typedef struct {
+    char    data[2048];
+    // to guarantee that it's always safe to do data[position] = '\0'
+    char    filler;
+    size_t  position;
+} SockReadBuffer;
 
-char *strcopy(char *dest, const char *src, size_t len);
+void sockReadBuffer_init(SockReadBuffer *pbBuffer);
 
-ssize_t strstartswith(const char *s, const char *prefix);
+SOCKET socket_connect(const URL *url, int tmout_ms, err_t *errp);
 
-#ifdef __cpluscplus
+bool socket_write(SOCKET sockfd, const void *data, size_t len, err_t *errp);
+
+char *socket_read_text(SOCKET sockfd, const char *terminator, int tmout_ms, SockReadBuffer *pbBuffer, err_t *errp);
+
+void *socket_read_binary(SOCKET sockfd, size_t expectedSize, size_t *actualSize, int tmout_ms, SockReadBuffer *pbBuffer,
+                         err_t *errp);
+
+
+#ifdef __cplusplus
 };
 #endif
 
-#endif //MARKETMAKER_CLI_STRUTIL_H
+#endif //MARKETMAKER_CLI_SOCKET_H

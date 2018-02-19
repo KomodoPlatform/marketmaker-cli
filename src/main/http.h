@@ -21,18 +21,13 @@
 #ifndef MARKETMAKER_CLI_HTTP_H
 #define MARKETMAKER_CLI_HTTP_H
 
+#include "url.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-    struct in_addr  addr;
-    uint16_t        port;
-} URL;
-
-bool parse_url(const char *strUrl, URL *url, err_t *errp);
-
-char *http_post(const URL *url, const char *body, err_t *errp);
+void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, size_t *responseBodyLen, err_t *errp);
 
 #ifdef __cplusplus
 };

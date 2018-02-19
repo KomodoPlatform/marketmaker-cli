@@ -93,7 +93,8 @@ PropertyGroup *fetch_api(const URL *url, err_t *errp)
     if (*errp != 0) {
         return NULL;
     }
-    char *response = http_post(url, jsonRequest, errp);
+    size_t responseLen = 0;
+    char *response = http_post(url, jsonRequest, strlen(jsonRequest), &responseLen, errp);
     free(jsonRequest);
     if (*errp != 0) {
         return NULL;

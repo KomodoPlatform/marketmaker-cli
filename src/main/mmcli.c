@@ -99,7 +99,8 @@ int main(int argc, char *argv[])
         print_syserr("building JSON request", err);
         return EXIT_FAILURE;
     }
-    char *response = http_post(&url, jsonRequest, &err);
+    size_t responseLen = 0;
+    char *response = http_post(&url, jsonRequest, strlen(jsonRequest), &responseLen, &err);
     if (err != 0) {
         print_syserr("sending/receiving HTTP message", err);
         return EXIT_FAILURE;

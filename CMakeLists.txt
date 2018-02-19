@@ -31,6 +31,7 @@ separate_arguments(CFLAGS_LIST)
 
 set(SOURCE_FILES
         src/main/mmcli.c
+        src/main/basic.h
         src/main/property.c
         src/main/property.h
         src/main/strutil.c
@@ -39,10 +40,15 @@ set(SOURCE_FILES
         src/main/api_help.h
         src/main/json.c
         src/main/json.h
+        src/main/url.c
+        src/main/url.h
+        src/main/socket.c
+        src/main/socket.h
         src/main/http.c
         src/main/http.h
         src/main/path.c
-        src/main/path.h)
+        src/main/path.h
+        )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
@@ -81,9 +87,12 @@ include_directories("src/main")
 
 add_executable(tests
         src/test/property_tests.cc
+        src/main/basic.h
         src/main/property.c
         src/main/strutil.c
         src/main/http.c
+        src/main/socket.c
+        src/main/url.c
         src/main/api_help.c
         src/test/api_help_tests.cc
         src/test/property_utils.cc

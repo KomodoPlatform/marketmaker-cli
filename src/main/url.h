@@ -13,33 +13,28 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef MARKETMAKER_CLI_STRUTIL_H
-#define MARKETMAKER_CLI_STRUTIL_H
+#ifndef MARKETMAKER_CLI_URL_H
+#define MARKETMAKER_CLI_URL_H
 
-#include <string.h>
+#include "basic.h"
+
 #include <stdbool.h>
-#include <monetary.h>
+#include <stdint.h>
+#include <netinet/in.h>
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-static inline bool strequal(const char *s1, const char *s2) {
-    return strcmp(s1, s2) == 0;
-}
+typedef struct {
+    struct in_addr  addr;
+    uint16_t        port;
+} URL;
 
-static inline bool strequalIgnoreCase(const char *s1, const char *s2) {
-    return strcasecmp(s1, s2) == 0;
-}
+bool parse_url(const char *strUrl, URL *url, err_t *errp);
 
-char *strtrim(char *s);
-
-char *strcopy(char *dest, const char *src, size_t len);
-
-ssize_t strstartswith(const char *s, const char *prefix);
-
-#ifdef __cpluscplus
+#ifdef __cplusplus
 };
 #endif
 
-#endif //MARKETMAKER_CLI_STRUTIL_H
+#endif //MARKETMAKER_CLI_URL_H

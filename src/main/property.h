@@ -41,7 +41,9 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
 
 size_t longest_key_len(const PropertyGroup *group);
 
-PropertyGroup *parse_properties(const char *str, err_t *errp);
+#define PARSE_OPT_IGNORE_INVALID_LINES  0x0001
+
+PropertyGroup *parse_properties(const char *str, char separator, int options, err_t *errp);
 
 PropertyGroup *load_properties(const char *path, err_t *err);
 
@@ -50,6 +52,8 @@ bool save_properties(const PropertyGroup *group, const char *path, err_t *err);
 void sort_properties(const PropertyGroup *group);
 
 const char *find_property(const PropertyGroup *group, const char *key);
+
+const char *find_property_ignore_case(const PropertyGroup *group, const char *key);
 
 #ifdef __cplusplus
 };

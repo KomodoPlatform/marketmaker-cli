@@ -27,7 +27,6 @@ char *strtrim(char *str)
         return NULL;
     }
     for (s = str; isspace ((unsigned char) *s); s++) {
-        continue;
     }
     p = s + strlen(s);
     while ((p > s) && isspace ((unsigned char) p[-1])) {

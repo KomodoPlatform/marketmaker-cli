@@ -25,7 +25,7 @@
 
 static char *load_file_contents(const char *path, err_t *errp);
 
-PropertyGroup *parse_properties(const char *str, err_t *errp)
+PropertyGroup *parse_properties(const char *str, char separator, int options, err_t *errp)
 {
     *errp = 0;
     char *copy = strdup(str);
@@ -49,7 +49,10 @@ PropertyGroup *parse_properties(const char *str, err_t *errp)
         s = strtrim(s);
         if (*s != '\0') {
             char *sep;
-            if ((sep = strchr(s, '=')) == NULL) {
+            if ((sep = strchr(s, separator)) == NULL) {
+                if ((options & PARSE_OPT_IGNORE_INVALID_LINES) != 0) {
+                    continue;
+                }
                 *errp = EINVAL;
                 break;
             }
@@ -61,6 +64,7 @@ PropertyGroup *parse_properties(const char *str, err_t *errp)
         }
     }
     if (*errp == 0) {
+        // TODO: copy is leaking!
         return realloc_properties(group, group->size);
     }
     free(copy);
@@ -69,7 +73,7 @@ PropertyGroup *parse_properties(const char *str, err_t *errp)
 
 PropertyGroup *load_properties(const char *path, err_t *err) {
     char * buffer = load_file_contents(path, err);
-    PropertyGroup *group = (*err == 0) ? parse_properties(buffer, err) : NULL;
+    PropertyGroup *group = (*err == 0) ? parse_properties(buffer, '=', 0, err) : NULL;
     if (group != NULL) {
         sort_properties(group);
     }
@@ -85,7 +89,7 @@ char *load_file_contents(const char *path, err_t *errp) {
     }
     char *buffer = NULL;
     if (fseek(file, 0, SEEK_END) >= 0) {
-        int length = ftell(file);
+        long length = ftell(file);
         fseek(file, 0, SEEK_SET);
         buffer = malloc((size_t) length + 1);
         if (buffer != NULL) {
@@ -125,6 +129,17 @@ const char *find_property(const PropertyGroup *group, const char *key)
     for (int i = 0; i < group->size; i++) {
         const Property *prop = &group->properties[i];
         if (strequal(prop->key, key)) {
+            return prop->value;
+        }
+    }
+    return NULL;
+}
+
+const char *find_property_ignore_case(const PropertyGroup *group, const char *key)
+{
+    for (int i = 0; i < group->size; i++) {
+        const Property *prop = &group->properties[i];
+        if (strequalIgnoreCase(prop->key, key)) {
             return prop->value;
         }
     }

@@ -19,7 +19,7 @@
 #define MARKETMAKER_CLI_API_HELP_H
 
 #include "property.h"
-#include "http.h"
+#include "url.h"
 
 #ifdef __cplusplus
 extern "C" {
