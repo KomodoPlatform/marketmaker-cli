@@ -47,7 +47,7 @@ static PropertyGroup *handle_api(const char *method, const char *programPath, co
 static PropertyGroup *build_param_list(const char *method, const char *userpass, const char *paramNames,
                                        int argc, char *argv[], err_t *errp);
 
-static void init_globals();
+static void init_globals(void);
 
 static void print_help_api(FILE *out, const PropertyGroup *api);
 
