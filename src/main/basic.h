@@ -20,8 +20,4 @@ typedef int err_t;
 
 #define DIMOF(a)        (sizeof(a) / sizeof((a)[0]))
 
-#ifndef min
-#define min(a, b)       ((a) < (b) ? (a) : (b))
-#endif
-
 #endif //MARKETMAKER_CLI_BASIC_H
