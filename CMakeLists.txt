@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
 project(marketmaker-cli)
 
+## use or not gcov
+option(ENABLE_GCOV "Enable gcov" OFF)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/;${CMAKE_MODULE_PATH}")
 
 include(cmake/GetGitRevisionDescription.cmake)
@@ -29,17 +32,21 @@ separate_arguments(CFLAGS_LIST)
 set(SOURCE_FILES
         src/main/mmcli.c
         src/main/property.c
+        src/main/property.h
         src/main/strutil.c
+        src/main/strutil.h
         src/main/api_help.c
         src/main/api_help.h
         src/main/json.c
         src/main/json.h
         src/main/http.c
-        src/main/http.h src/main/path.c src/main/path.h)
+        src/main/http.h
+        src/main/path.c
+        src/main/path.h)
 
-add_executable(marketmaker-cli ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-install(TARGETS marketmaker-cli RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 include(CTest)
 if (CMAKE_VERSION VERSION_LESS 3.2)
@@ -83,6 +90,11 @@ add_executable(tests
         src/main/json.c
         )
 target_link_libraries(tests gtest gmock_main)
+
+if(ENABLE_GCOV)
+    target_compile_options(tests PUBLIC --coverage)
+    set_target_properties(tests PROPERTIES LINK_FLAGS --coverage)
+endif(ENABLE_GCOV)
 
 add_test(NAME Tests COMMAND tests)
 
