@@ -141,7 +141,7 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
             continue;
         }
         if (argc == 0) {
-            *errp = EINVAL;
+            // hopefully the missing arguments are optional
             break;
         }
         --argc;
