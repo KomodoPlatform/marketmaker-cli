@@ -11,17 +11,15 @@ The build system is based on CMake 3.2+. Follow these steps to build the applica
 $ mkdir build
 $ cd build
 $ cmake ..
-$ make
+$ cmake --build .
 ```
 
 ## Usage
 
-Two ancillary functionalities were also implemented: cached authentication and API refresh.
-
-### Cached Authentication
+### Authentication
 
 To avoid the input of user credentials on every invocation, a pseudo-method name `_config` shall be used in order to 
-store this information on a local file (`$HOME/.mmcli.config`).
+cache this information on a local file (`$HOME/.mmcli.config`).
 
 Example:
 
@@ -30,22 +28,12 @@ $ ./marketmaker-cli _config http://127.0.0.1:7783 \
 1d8b27b21efabcd96571cd56f91a40fb9aa4cc623d273c63bf9223dc6f8cd81f
 ```
 
-### Duped API
+### Calling the API
 
-Instead of duplicating and hard-coding the definition of more than 50 API calls, this application *learns* the MM API 
-from the response given for the `help` method and caches these definitions on an external file (`$HOME/.mmcli.api`).
-To force refreshing this information, one can use the `_refresh` pseudo-method explicitly:
-
+To see the list of available methods and their respective parameters you can use:
 ```console
-$ ./marketmaker-cli _refresh
-```
-
-### Getting API Help
-
-To see the list of available methods and their parameters you can use:
-```console
-$ ./marketmaker-cli
-Syntax: ./marketmaker-cli [_config URL USERPASS | _refresh | method params*]
+$ ./marketmaker-cli      # or './marketmaker-cli help'
+Syntax: ./marketmaker-cli [_config URL USERPASS | _refresh | help | method [-h | --help | params*]
 
 Method                Parameters
 ====================  =============================================
@@ -108,6 +96,37 @@ trust ............... pubkey,trust
 withdraw ............ coin,outputs
 ```
 
+It's also possible to get help for a specific method by using the special parameter `-h` or `--help`. Example:
+
+```console
+$ ./marketmaker-cli passphrase -h 
+Parameters for method 'passphrase': passphrase,gui,netid,seednode
+```
+
+All method parameters are treated as if they were optional. Thus you can suppress one or more ending parameters.
+See the examples of accepted invocations for the method `passphrase`:
+
+```console
+$ ./marketmaker-cli passphrase testtest beerDEX
+$ # or  
+$ ./marketmaker-cli passphrase testtest beerDEX 0
+$ # or  
+$ ./marketmaker-cli passphrase testtest beerDEX 0 xyz
+```
+
+### Duped API
+
+> Note: this functionality generally works automatically, not requiring user intervention under normal
+> circumstances.   
+
+Instead of duplicating and hard-coding the definition of more than 50 API calls, this application *learns* the MM API 
+from the response given for the `help` method and caches these definitions on an external file (`$HOME/.mmcli.api`).
+To force refreshing this information, one can use the `_refresh` pseudo-method explicitly:
+
+```console
+$ ./marketmaker-cli _refresh
+```
+
 ## Unit Tests
 
 The Unit Tests were implemented in C++ using the Google Test Framework (GTF), and their sources are located at 
@@ -116,5 +135,5 @@ The Unit Tests were implemented in C++ using the Google Test Framework (GTF), an
 To run the Unit Tests, just run the following command under the `build` directory:
 
 ```console
-$ make && ./tests
+$ cmake --build . && ./tests
 ```
