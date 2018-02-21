@@ -36,15 +36,13 @@ void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, 
     if (*errp != 0) {
         return NULL;
     }
-    if (*errp == 0) {
-        char requestHeader[128];
-        snprintf(requestHeader, sizeof(requestHeader), "POST / HTTP/1.1\r\n"
-                "Accept: */*\r\n"
-                "Content-Length: %d\r\n"
-                "Content-Type: application/x-www-form-urlencoded\r\n"
-                "\r\n", (int) strlen(requestBody));
-        socket_write(sockfd, requestHeader, strlen(requestHeader), errp);
-    }
+    char requestHeader[128];
+    snprintf(requestHeader, sizeof(requestHeader), "POST / HTTP/1.1\r\n"
+            "Accept: */*\r\n"
+            "Content-Length: %d\r\n"
+            "Content-Type: application/x-www-form-urlencoded\r\n"
+            "\r\n", (int) strlen(requestBody));
+    socket_write(sockfd, requestHeader, strlen(requestHeader), errp);
     if (*errp == 0) {
         socket_write(sockfd, requestBody, requestBodyLen, errp);
     }
@@ -58,9 +56,14 @@ void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, 
         if ((responseHeader = socket_read_text(sockfd, "\r\n\r\n", READ_TIMEOUT, &buffer, errp)) != NULL) {
             PropertyGroup *headers = parse_properties(responseHeader, ':', PARSE_OPT_IGNORE_INVALID_LINES, errp);
             free(responseHeader);
-            size_t contentLength = http_header_get_ulong(headers, "Content-Length", errp);
-            free(headers);
-            responseBody = socket_read_binary(sockfd, contentLength, responseBodyLen, READ_TIMEOUT, &buffer, errp);
+            if (*errp == 0) {
+                size_t contentLength = http_header_get_ulong(headers, "Content-Length", errp);
+                free(headers);
+                if (*errp == 0) {
+                    responseBody = socket_read_binary(sockfd, contentLength, responseBodyLen, READ_TIMEOUT, &buffer,
+                                                      errp);
+                }
+            }
         }
     }
 
