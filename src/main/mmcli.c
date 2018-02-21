@@ -33,16 +33,24 @@ static const char *const KEY_USERPASS = "userpass";
 static const char *configPath;
 static const char *apiPath;
 
+static Property UNDOCUMENTED_API_PROPS[] = {"help", ""};
+static const PropertyGroup UNDOCUMENTED_API = {
+        DIMOF(UNDOCUMENTED_API_PROPS),
+        UNDOCUMENTED_API_PROPS
+};
+
 static void print_help(const char *programPath, const PropertyGroup *api);
 
 static void print_syserr(const char *context, err_t err);
+
+static void print_msg(const char *fmt, ...);
 
 static void print_err(const char *fmt, ...);
 
 static PropertyGroup *handle_config(const char *method, const char *programPath, int argc, char *argv[], err_t *errp);
 
-static PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc,
-                                 err_t *errp);
+static const PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc,
+                                       err_t *errp);
 
 static PropertyGroup *build_param_list(const char *method, const char *userpass, const char *paramNames,
                                        int argc, char *argv[], err_t *errp);
@@ -77,7 +85,7 @@ int main(int argc, char *argv[])
         print_err("Invalid URL: %s", strUrl);
     }
 
-    PropertyGroup *api = handle_api(method, programPath, &url, argc, &err);
+    const PropertyGroup *api = handle_api(method, programPath, &url, argc, &err);
     if (api == NULL) {
         return (err == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
     }
@@ -86,6 +94,11 @@ int main(int argc, char *argv[])
     if (paramNames == NULL) {
         print_err("Unknown method: %s", method);
         return EXIT_FAILURE;
+    }
+
+    if ((argc == 1) && (strequal(argv[0], "-h") || strequal(argv[0], "--help"))) {
+        print_msg("Parameters for method '%s': %s", method, paramNames);
+        return EXIT_SUCCESS;
     }
 
     const char *userpass = find_property(config, KEY_USERPASS);
@@ -163,6 +176,16 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
     return paramList;
 }
 
+void print_msg(const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    fputc('\n', stdout);
+    va_end(ap);
+}
+
 void print_err(const char *fmt, ...)
 {
     va_list ap;
@@ -181,7 +204,7 @@ void print_syserr(const char *context, err_t err)
 
 void print_help(const char *programPath, const PropertyGroup *api)
 {
-    fprintf(stderr, "Syntax: %s [_config URL USERPASS | _refresh | method params*]\n", programPath);
+    fprintf(stderr, "Syntax: %s [_config URL USERPASS | _refresh | help | method [-h | --help | params*]]\n", programPath);
     if (api != NULL) {
         print_help_api(stderr, api);
     }
@@ -240,9 +263,13 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
     return config;
 }
 
-PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc, err_t *errp)
+const PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc, err_t *errp)
 {
     *errp = 0;
+    if (find_property(&UNDOCUMENTED_API, method) != NULL) {
+        return &UNDOCUMENTED_API;
+    }
+
     const bool doRefresh = strequal(method, "_refresh");
     if (doRefresh && (argc != 0)) {
         print_help(programPath, NULL);
