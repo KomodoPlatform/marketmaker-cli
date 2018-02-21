@@ -32,16 +32,19 @@ typedef struct {
 
 typedef struct {
     size_t   size;
+    size_t   capacity;
     Property *properties;
 } PropertyGroup;
 
+PropertyGroup *alloc_properties(size_t newCapacity);
+
 PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity);
 
-PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp);
+PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, err_t *errp);
 
-PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp);
+PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, err_t *errp);
 
-PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, size_t *capacity, err_t *errp);
+PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, err_t *errp);
 
 size_t longest_key_len(const PropertyGroup *group);
 

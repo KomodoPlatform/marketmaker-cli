@@ -132,15 +132,14 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
         *errp = ENOMEM;
         return NULL;
     }
-    size_t capacity = 10;
-    PropertyGroup *paramList = realloc_properties(NULL, capacity);
+    PropertyGroup *paramList = realloc_properties(NULL, 10);
     if (paramList == NULL) {
         *errp = ENOMEM;
         return NULL;
     }
     paramList->size = 0;
-    add_property(paramList, "method", method, &capacity, errp);
-    add_property(paramList, KEY_USERPASS, userpass, &capacity, errp);
+    add_property(paramList, "method", method, errp);
+    add_property(paramList, KEY_USERPASS, userpass, errp);
     char *next_param = NULL;
     for (char *s = names; s != NULL; s = next_param) {
         if ((next_param = strchr(s, ',')) != NULL) {
@@ -154,7 +153,7 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
             break;
         }
         --argc;
-        paramList = add_property(paramList, s, *argv++, &capacity, errp);
+        paramList = add_property(paramList, s, *argv++, errp);
         if (*errp != 0) {
             break;
         }
@@ -239,7 +238,7 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
                 {KEY_URL,      url},
                 {KEY_USERPASS, userpass}
         };
-        PropertyGroup config = {2, props};
+        PropertyGroup config = {DIMOF(props), DIMOF(props), props};
         if (!save_properties(&config, configPath, errp)) {
             print_syserr("saving config file", *errp);
         }

@@ -21,7 +21,7 @@
 #include "property.h"
 #include "strutil.h"
 
-#define INITIAL_CAPACITY 10
+static const int INITIAL_CAPACITY = 10;
 
 static char *load_file_contents(const char *path, err_t *errp);
 
@@ -33,8 +33,7 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
         *errp = ENOMEM;
         return NULL;
     }
-    size_t capacity = INITIAL_CAPACITY;
-    PropertyGroup *group = realloc_properties(NULL, capacity);
+    PropertyGroup *group = alloc_properties(INITIAL_CAPACITY);
     if (group == NULL) {
         free(copy);
         *errp = ENOMEM;
@@ -57,7 +56,7 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
                 break;
             }
             *sep++ = '\0';
-            group = add_property(group, strtrim(s), strtrim(sep), &capacity, errp);
+            group = add_property(group, strtrim(s), strtrim(sep), errp);
             if (*errp != 0) {
                 break;
             }
@@ -120,6 +119,11 @@ bool save_properties(const PropertyGroup *group, const char *path, err_t *err)
     return true;
 }
 
+PropertyGroup *alloc_properties(size_t newCapacity)
+{
+    return realloc_properties(NULL, newCapacity);
+}
+
 PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
 {
     size_t newTotalSize = sizeof(PropertyGroup) + newCapacity * sizeof(Property);
@@ -127,6 +131,7 @@ PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
     if (group == NULL) {
         newGroup->size = 0;
     }
+    newGroup->capacity = newCapacity;
     newGroup->properties = (Property *) (newGroup + 1);
     return newGroup;
 }
@@ -153,12 +158,11 @@ const char *find_property_ignore_case(const PropertyGroup *group, const char *ke
     return NULL;
 }
 
-PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp)
+PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, err_t *errp)
 {
     *errp = 0;
-    if (group->size == *capacity) {
-        *capacity *= 2;
-        group = realloc_properties(group, *capacity);
+    if (group->size == group->capacity) {
+        group = realloc_properties(group, group->capacity * 2);
         if (group == NULL) {
             *errp = ENOMEM;
             return NULL;
@@ -172,7 +176,7 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
     return group;
 }
 
-PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp)
+PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, err_t *errp)
 {
     for (int i = 0; i < group->size; i++) {
         Property *prop = &group->properties[i];
@@ -182,15 +186,14 @@ PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *v
         }
     }
 
-    return add_property(group, key, value, capacity, errp);
+    return add_property(group, key, value, errp);
 }
 
-PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, size_t *capacity,
-                                  err_t *errp)
+PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, err_t *errp)
 {
     for (int i = 0; i < sourceGroup->size; i++) {
         const Property *prop = &sourceGroup->properties[i];
-        destGroup = put_property(destGroup, prop->key, prop->value, capacity, errp);
+        destGroup = put_property(destGroup, prop->key, prop->value, errp);
         if (destGroup == NULL) {
             break;
         }

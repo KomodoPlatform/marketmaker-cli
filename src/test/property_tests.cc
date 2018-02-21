@@ -16,6 +16,7 @@ static Property PROPS1[] = {
 };
 static const PropertyGroup GROUP1 = {
         DIMOF(PROPS1),
+        DIMOF(PROPS1),
         PROPS1
 };
 
@@ -56,20 +57,20 @@ TEST(PropertyGroupTests, putAllAndSort)
     };
     PropertyGroup group1 = {
             DIMOF(props1),
+            DIMOF(props1),
             props1
     };
     err_t err;
-    size_t capacity = 10;
-    PropertyGroup *group2 = realloc_properties(nullptr, capacity);
-    group2 = add_property(group2, "help", "", &capacity, &err);
+    PropertyGroup *group2 = realloc_properties(nullptr, 10);
+    group2 = add_property(group2, "help", "", &err);
     ASSERT_EQ(0, err);
-    group2 = add_property(group2, "goal", "coin", &capacity, &err);
+    group2 = add_property(group2, "goal", "coin", &err);
     ASSERT_EQ(0, err);
-    group2 = add_property(group2, "myprice", "base,coin,rel", &capacity, &err);
+    group2 = add_property(group2, "myprice", "base,coin,rel", &err);
     ASSERT_EQ(0, err);
     ASSERT_EQ(3, group2->size);
 
-    group2 = put_all_properties(group2, &group1, &capacity, &err);
+    group2 = put_all_properties(group2, &group1, &err);
     ASSERT_EQ(0, err);
     ASSERT_EQ(6, group2->size);
     ASSERT_NE(nullptr, group2);
@@ -84,6 +85,7 @@ TEST(PropertyGroupTests, putAllAndSort)
     };
     PropertyGroup expectedGroup = {
             DIMOF(expectedProps),
+            DIMOF(expectedProps),
             expectedProps
     };
 
@@ -96,7 +98,7 @@ TEST(PropertyGroupTests, parseEmptyConfig)
     err_t err;
     PropertyGroup *group = parse_properties("", '=', 0, &err);
     ASSERT_EQ(0, err);
-    PropertyGroup expectedGroup = {0, nullptr};
+    PropertyGroup expectedGroup = {0, 0, nullptr};
     ASSERT_EQ(expectedGroup, *group);
 }
 
@@ -119,7 +121,7 @@ TEST(PropertyGroupTests, parseConfig)
             {"url",      "http://127.0.0.1:7783"},
             {"userpass", "1d8b27b21efabcd96571cd56f91a40fb9aa4cc623d273c63bf9223dc6f8cd81f"},
     };
-    PropertyGroup expectedGroup = {DIMOF(expectedProps), expectedProps};
+    PropertyGroup expectedGroup = {DIMOF(expectedProps), DIMOF(expectedProps), expectedProps};
     ASSERT_EQ(expectedGroup, *group);
 }
 
@@ -141,6 +143,6 @@ TEST(PropertyGroupTests, parseHttpHeaders)
             {"Cache-Control",                    "no-cache, no-store, must-revalidate"},
             {"Content-Length",                   "71"},
     };
-    PropertyGroup expectedGroup = {DIMOF(expectedProps), expectedProps};
+    PropertyGroup expectedGroup = {DIMOF(expectedProps), DIMOF(expectedProps), expectedProps};
     ASSERT_EQ(expectedGroup, *group);
 }

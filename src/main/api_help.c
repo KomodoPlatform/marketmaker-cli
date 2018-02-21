@@ -28,6 +28,7 @@
 static Property UNDOCUMENTED_API_PROPS[] = {"help", ""};
 static const PropertyGroup UNDOCUMENTED_API = {
         DIMOF(UNDOCUMENTED_API_PROPS),
+        DIMOF(UNDOCUMENTED_API_PROPS),
         UNDOCUMENTED_API_PROPS
 };
 
@@ -41,8 +42,7 @@ PropertyGroup *parse_api_help(const char *str, err_t *errp)
         *errp = ENOMEM;
         return NULL;
     }
-    size_t capacity = INITIAL_CAPACITY;
-    PropertyGroup *group = realloc_properties(NULL, capacity);
+    PropertyGroup *group = alloc_properties(INITIAL_CAPACITY);
     if (group == NULL) {
         free(copy);
         *errp = ENOMEM;
@@ -73,7 +73,7 @@ PropertyGroup *parse_api_help(const char *str, err_t *errp)
             *sep++ = '\0';
             const char *key = strtrim(s);
             if (*key != '\0') {
-                group = add_property(group, key, strip_params(strtrim(sep)), &capacity, errp);
+                group = add_property(group, key, strip_params(strtrim(sep)), errp);
                 if (*errp != 0) {
                     break;
                 }
@@ -94,7 +94,7 @@ PropertyGroup *fetch_api(const URL *url, err_t *errp)
     Property props[] = {
             {"method", "help"}
     };
-    PropertyGroup group = {DIMOF(props), props};
+    PropertyGroup group = {DIMOF(props), DIMOF(props), props};
     char *jsonRequest = build_json_request(&group, errp);
     if (*errp != 0) {
         return NULL;
@@ -107,8 +107,7 @@ PropertyGroup *fetch_api(const URL *url, err_t *errp)
     }
     PropertyGroup *api = parse_api_help(response, errp);
     if (api != NULL) {
-        size_t capacity = api->size;
-        api = put_all_properties(api, &UNDOCUMENTED_API, &capacity, errp);
+        api = put_all_properties(api, &UNDOCUMENTED_API, errp);
     }
     free(response);
     return api;

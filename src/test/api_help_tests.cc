@@ -131,7 +131,7 @@ TEST(ApiHelpTests, parseCurrentHelp) {
     };
     err_t err;
     PropertyGroup expectedApi = {
-            DIMOF(props), props
+            DIMOF(props), DIMOF(props), props
     };
     PropertyGroup *api = parse_api_help(currentHelp, &err);
     ASSERT_EQ(0, err);
