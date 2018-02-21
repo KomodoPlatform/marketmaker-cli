@@ -22,7 +22,7 @@ $ cmake --build .
 
 ### Authentication
 
-To avoid the input of user credentials on every invocation, a pseudo-method name `_config` shall be used in order to 
+To avoid the input of user credentials on every invocation, a pseudo-method name `_config` shall be used in order to
 cache this information on a local file (`$HOME/.mmcli.config`).
 
 Example:
@@ -36,8 +36,8 @@ $ ./marketmaker-cli _config http://127.0.0.1:7783 \
 
 To see the list of available methods and their respective parameters you can use:
 ```console
-$ ./marketmaker-cli      # or './marketmaker-cli help'
-Syntax: ./marketmaker-cli [_config URL USERPASS | _refresh | help | method [-h | --help | params*]
+$ ./marketmaker-cli -h   # or './marketmaker-cli --help'
+Syntax: ./marketmaker-cli [-h | --help | _config URL USERPASS | _refresh | method [-h | --help | params*]
 
 Method                Parameters
 ====================  =============================================
@@ -45,12 +45,12 @@ autoprice ........... base,rel,fixed,minprice,maxprice,margin,refbase,refrel,fac
 balance ............. coin,address
 balances ............ address
 bot_buy ............. base,rel,maxprice,relvolume
-bot_list ............ 
+bot_list ............
 bot_pause ........... botid
 bot_sell ............ base,rel,minprice,basevolume
 bot_settings ........ botid,newprice,newvolume
 bot_status .......... botid
-bot_statuslist ...... 
+bot_statuslist ......
 bot_stop ............ botid
 buy ................. base,rel,price,relvolume,timeout,duration,nonce
 calcaddress ......... passphrase
@@ -60,25 +60,25 @@ electrum ............ coin,ipaddr,port
 enable .............. coin
 fundvalue ........... address,holdings,divisor
 getcoin ............. coin
-getcoins ............ 
+getcoins ............
 getmyprice .......... base,rel
-getpeers ............ 
+getpeers ............
 getprice ............ base,rel
-getprices ........... 
+getprices ...........
 getrawtransaction ... coin,txid
 goal ................ coin,val
-instantdex_claim .... 
+instantdex_claim ....
 instantdex_deposit .. weeks,amount,broadcast
 inventory ........... coin,reset,passphrase
 jpg ................. srcfile,destfile,power2,password,data,required,ind
-lastnonce ........... 
+lastnonce ...........
 listunspent ......... coin,address
 myprice ............. base,rel
 notarizations ....... coin
 notarizations ....... coin
 orderbook ........... base,rel,duration
 passphrase .......... passphrase,gui,netid,seednode
-portfolio ........... 
+portfolio ...........
 pricearray .......... base,rel,starttime,endtime,timescale
 recentswaps ......... limit
 secretaddresses ..... prefix,passphrase,num,pubtype,taddr
@@ -89,7 +89,7 @@ setprice ............ base,rel,price,broadcast
 snapshot ............ coin,height
 snapshot_balance .... coin,height,addresses
 statsdisp ........... starttime,endtime,gui,pubkey,base,rel
-stop ................ 
+stop ................
 swapstatus .......... base,rel,limit
 swapstatus .......... coin,limit
 swapstatus .......... pending
@@ -103,7 +103,7 @@ withdraw ............ coin,outputs
 It's also possible to get help for a specific method by using the special parameter `-h` or `--help`. Example:
 
 ```console
-$ ./marketmaker-cli passphrase -h 
+$ ./marketmaker-cli passphrase -h
 Parameters for method 'passphrase': passphrase,gui,netid,seednode
 ```
 
@@ -112,32 +112,30 @@ See the examples of accepted invocations for the method `passphrase`:
 
 ```console
 $ ./marketmaker-cli passphrase testtest beerDEX
-$ # or  
+$ # or
 $ ./marketmaker-cli passphrase testtest beerDEX 0
-$ # or  
+$ # or
 $ ./marketmaker-cli passphrase testtest beerDEX 0 xyz
-```
-
-### Duped API
-
-> Note: this functionality generally works automatically, not requiring user intervention under normal
-> circumstances.   
-
-Instead of duplicating and hard-coding the definition of more than 50 API calls, this application *learns* the MM API 
-from the response given for the `help` method and caches these definitions on an external file (`$HOME/.mmcli.api`).
-To force refreshing this information, one can use the `_refresh` pseudo-method explicitly:
-
-```console
-$ ./marketmaker-cli _refresh
 ```
 
 ## Unit Tests
 
-The Unit Tests were implemented in C++ using the Google Test Framework (GTF), and their sources are located at 
+The Unit Tests were implemented in C++ using the Google Test Framework (GTF), and their sources are located at
 `$PROJECT_DIR/src/test`. The build system automatically downloads and builds the required GTF.
 
 To run the Unit Tests, just run the following command under the `build` directory:
 
 ```console
 $ cmake --build . && ./tests
+```
+
+### Troubleshooting
+
+In your first run the program automatically fetches and caches the API methods definitions
+extracted from the output of the 'help' method.
+In case the `marketmaker` API changes after this first run, or the cache files becomes corrupted,
+you can force recreating it using the command:
+
+```console
+$ ./marketmaker-cli _refresh
 ```

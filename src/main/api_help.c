@@ -25,6 +25,12 @@
 
 #define INITIAL_CAPACITY 50
 
+static Property UNDOCUMENTED_API_PROPS[] = {"help", ""};
+static const PropertyGroup UNDOCUMENTED_API = {
+        DIMOF(UNDOCUMENTED_API_PROPS),
+        UNDOCUMENTED_API_PROPS
+};
+
 static char *strip_params(char *src);
 
 PropertyGroup *parse_api_help(const char *str, err_t *errp)
@@ -100,6 +106,10 @@ PropertyGroup *fetch_api(const URL *url, err_t *errp)
         return NULL;
     }
     PropertyGroup *api = parse_api_help(response, errp);
+    if (api != NULL) {
+        size_t capacity = api->size;
+        api = put_all_properties(api, &UNDOCUMENTED_API, &capacity, errp);
+    }
     free(response);
     return api;
 }

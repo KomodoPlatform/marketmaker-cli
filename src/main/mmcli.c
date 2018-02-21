@@ -34,12 +34,6 @@ static const char *const KEY_USERPASS = "userpass";
 static const char *configPath;
 static const char *apiPath;
 
-static Property UNDOCUMENTED_API_PROPS[] = {"help", ""};
-static const PropertyGroup UNDOCUMENTED_API = {
-        DIMOF(UNDOCUMENTED_API_PROPS),
-        UNDOCUMENTED_API_PROPS
-};
-
 static void print_help(const char *programPath, const PropertyGroup *api);
 
 static void print_syserr(const char *context, err_t err);
@@ -66,7 +60,7 @@ int main(int argc, char *argv[])
 
     const char *programPath = argv[0];
     err_t err;
-    if (argc <= 1) {
+    if ((argc <= 1) || strequal(argv[1], "-h") || strequal(argv[1], "--help")) {
         PropertyGroup *api = load_properties(apiPath, &err);
         print_help(programPath, api);
         return EXIT_SUCCESS;
@@ -205,7 +199,7 @@ void print_syserr(const char *context, err_t err)
 
 void print_help(const char *programPath, const PropertyGroup *api)
 {
-    fprintf(stderr, "Syntax: %s [_config URL USERPASS | _refresh | help | method [-h | --help | params*]]\n", programPath);
+    fprintf(stderr, "Syntax: %s [-h | --help | _config URL USERPASS | _refresh | method [-h | --help | params*]]\n", programPath);
     if (api != NULL) {
         print_help_api(stderr, api);
     }
@@ -267,10 +261,6 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
 const PropertyGroup *handle_api(const char *method, const char *programPath, const URL *url, int argc, err_t *errp)
 {
     *errp = 0;
-    if (find_property(&UNDOCUMENTED_API, method) != NULL) {
-        return &UNDOCUMENTED_API;
-    }
-
     const bool doRefresh = strequal(method, "_refresh");
     if (doRefresh && (argc != 0)) {
         print_help(programPath, NULL);

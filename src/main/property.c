@@ -56,7 +56,7 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
                 *errp = EINVAL;
                 break;
             }
-            *sep++   = '\0';
+            *sep++ = '\0';
             group = add_property(group, strtrim(s), strtrim(sep), &capacity, errp);
             if (*errp != 0) {
                 break;
@@ -71,8 +71,9 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
     return NULL;
 }
 
-PropertyGroup *load_properties(const char *path, err_t *err) {
-    char * buffer = load_file_contents(path, err);
+PropertyGroup *load_properties(const char *path, err_t *err)
+{
+    char *buffer = load_file_contents(path, err);
     PropertyGroup *group = (*err == 0) ? parse_properties(buffer, '=', 0, err) : NULL;
     if (group != NULL) {
         sort_properties(group);
@@ -81,7 +82,8 @@ PropertyGroup *load_properties(const char *path, err_t *err) {
     return group;
 }
 
-char *load_file_contents(const char *path, err_t *errp) {
+char *load_file_contents(const char *path, err_t *errp)
+{
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
         *errp = errno;
@@ -103,7 +105,8 @@ char *load_file_contents(const char *path, err_t *errp) {
     return buffer;
 }
 
-bool save_properties(const PropertyGroup *group, const char *path, err_t *err) {
+bool save_properties(const PropertyGroup *group, const char *path, err_t *err)
+{
     *err = 0;
     FILE *file = fopen(path, "w+b");
     if (file == NULL) {
@@ -117,7 +120,8 @@ bool save_properties(const PropertyGroup *group, const char *path, err_t *err) {
     return true;
 }
 
-PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity) {
+PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
+{
     size_t newTotalSize = sizeof(PropertyGroup) + newCapacity * sizeof(Property);
     group = realloc(group, newTotalSize);
     group->properties = (Property *) (group + 1);
@@ -165,6 +169,32 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
     return group;
 }
 
+PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, size_t *capacity, err_t *errp)
+{
+    for (int i = 0; i < group->size; i++) {
+        Property *prop = &group->properties[i];
+        if (strequal(prop->key, key)) {
+            prop->value = value;
+            return group;
+        }
+    }
+
+    return add_property(group, key, value, capacity, errp);
+}
+
+PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, size_t *capacity,
+                                  err_t *errp)
+{
+    for (int i = 0; i < sourceGroup->size; i++) {
+        const Property *prop = &sourceGroup->properties[i];
+        destGroup = put_property(destGroup, prop->key, prop->value, capacity, errp);
+        if (destGroup == NULL) {
+            break;
+        }
+    }
+    return destGroup;
+}
+
 size_t longest_key_len(const PropertyGroup *group)
 {
     size_t the_key_len = 0;
@@ -178,7 +208,8 @@ size_t longest_key_len(const PropertyGroup *group)
     return the_key_len;
 }
 
-static int prop_compare(const void *p1, const void *p2) {
+static int prop_compare(const void *p1, const void *p2)
+{
     int cmp = strcmp(((const Property *) p1)->key, ((const Property *) p2)->key);
     if (cmp == 0) {
         cmp = strcmp(((const Property *) p1)->value, ((const Property *) p2)->value);
