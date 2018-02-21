@@ -13,7 +13,7 @@
  *                                                                            *
  ******************************************************************************/
 
-#include "socket.h"
+#include "sys_socket.h"
 
 #include <string.h>
 #include <errno.h>

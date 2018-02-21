@@ -43,8 +43,8 @@ set(SOURCE_FILES
         src/main/json.h
         src/main/url.c
         src/main/url.h
-        src/main/socket.c
-        src/main/socket.h
+        src/main/sys_socket.c
+        src/main/sys_socket.h
         src/main/http.c
         src/main/http.h
         src/main/path.c
@@ -93,7 +93,7 @@ add_executable(tests
         src/main/property.c
         src/main/strutil.c
         src/main/http.c
-        src/main/socket.c
+        src/main/sys_socket.c
         src/main/url.c
         src/main/api_help.c
         src/test/api_help_tests.cc

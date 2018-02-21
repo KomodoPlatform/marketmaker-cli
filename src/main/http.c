@@ -14,7 +14,7 @@
  ******************************************************************************/
 
 #include "http.h"
-#include "socket.h"
+#include "sys_socket.h"
 #include "strutil.h"
 #include "property.h"
 
