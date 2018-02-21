@@ -1,5 +1,8 @@
 # MarketMaker Command-Line Interface
 
+[![license](https://img.shields.io/github/license/eliezio/marketmaker-cli.svg)]()
+[![CI Build](https://travis-ci.org/eliezio/marketmaker-cli.svg?branch=master)]()
+
 This application is a CLI front-end to `marketmaker` API (barterDEX).
 It builds a JSON requests based on given arguments and display the results returned by the `marketmaker` (MM) back-end.
 
