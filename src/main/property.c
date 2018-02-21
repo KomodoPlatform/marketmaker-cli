@@ -123,9 +123,12 @@ bool save_properties(const PropertyGroup *group, const char *path, err_t *err)
 PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
 {
     size_t newTotalSize = sizeof(PropertyGroup) + newCapacity * sizeof(Property);
-    group = realloc(group, newTotalSize);
-    group->properties = (Property *) (group + 1);
-    return group;
+    PropertyGroup *newGroup = realloc(group, newTotalSize);
+    if (group == NULL) {
+        newGroup->size = 0;
+    }
+    newGroup->properties = (Property *) (newGroup + 1);
+    return newGroup;
 }
 
 const char *find_property(const PropertyGroup *group, const char *key)

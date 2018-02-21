@@ -87,6 +87,7 @@ endif ()
 include_directories("src/main")
 
 add_executable(tests
+        src/test/url_tests.cc
         src/test/property_tests.cc
         src/main/basic.h
         src/main/property.c
@@ -98,7 +99,7 @@ add_executable(tests
         src/test/api_help_tests.cc
         src/test/property_utils.cc
         src/main/json.c
-        )
+        src/test/json_tests.cc)
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)

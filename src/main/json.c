@@ -21,6 +21,7 @@
 
 char *build_json_request(const PropertyGroup *group, err_t *errp)
 {
+    *errp = 0;
     size_t capacity = 64;
     size_t ofs = 0;
     char *buffer = malloc(capacity);
