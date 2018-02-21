@@ -21,6 +21,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL
     set(CC_WARNINGS ${CXX_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes)
     set(CC_OPTIONS -fdata-sections -ffunction-sections)
     set(LD_OPTIONS -Wl,--gc-sections)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu99")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 else ()
     message(FATAL_ERROR "Unsupported C compiler ${CMAKE_C_COMPILER_ID}")

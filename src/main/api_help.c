@@ -140,7 +140,7 @@ char *strip_params(char *src)
             if (d > dest) {
                 *d++ = ',';
             }
-            memcpy(d, s, slen);
+            memmove(d, s, slen);
             d += slen;
         }
     }

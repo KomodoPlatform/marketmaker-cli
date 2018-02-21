@@ -35,7 +35,7 @@ char *strtrim(char *str)
     *p = '\0';
     if (s > str) {
         size_t slen = strlen(s);
-        memcpy(str, s, slen);
+        memmove(str, s, slen);
         str[slen] = '\0';
     }
     return str;
