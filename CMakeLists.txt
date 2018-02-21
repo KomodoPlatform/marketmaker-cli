@@ -102,7 +102,7 @@ add_executable(tests
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)
-    target_compile_options(tests PUBLIC $<$<COMPILE_LANGUAGE:C>:--coverage>)
+    target_compile_options(tests PUBLIC $<$<COMPILE_LANGUAGE:C>:--coverage -g -O0>)
     set_target_properties(tests PROPERTIES LINK_FLAGS --coverage)
 endif(ENABLE_GCOV)
 

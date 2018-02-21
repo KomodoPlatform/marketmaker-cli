@@ -1,7 +1,6 @@
 language: c
 
 compiler:
-  - clang
   - gcc
 
 install:
@@ -9,8 +8,9 @@ install:
 
 script:
   - mkdir build && cd build
-  - cmake .. && make
+  - cmake -DENABLE_GCOV=ON ..
+  - cmake --build .
   - ./tests
 
 after_success:
-  - codecov -X gcov
+  - codecov --root ..
