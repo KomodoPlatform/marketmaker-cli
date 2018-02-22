@@ -52,6 +52,9 @@ set(SOURCE_FILES
         src/main/http.h
         src/main/path.c
         src/main/path.h
+        src/main/file.h
+        src/main/sys_file.c
+        src/main/sys_file.h
         )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -107,6 +110,10 @@ add_executable(tests
         src/test/CppSocket.h
         src/test/CppSocket.cc
         src/test/MockSocket.h
+        src/main/file.h
+        src/test/CppFile.cc
+        src/test/CppFile.h
+        src/test/MockFile.h
         )
 target_link_libraries(tests gtest gmock_main)
 

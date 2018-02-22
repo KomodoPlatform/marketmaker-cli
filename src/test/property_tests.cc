@@ -1,18 +1,27 @@
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <property.h>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
 #include "property_utils.h"
+#include "MockFile.h"
+
+using ::testing::_;
+using ::testing::NotNull;
+using ::testing::DoAll;
+using ::testing::Return;
+using ::testing::Invoke;
+using ::testing::SetArrayArgument;
 
 static Property PROPS1[] = {
         {"autoprice", "base,rel,fixed,minprice,maxprice,margin,refbase,refrel,factor,offset"},
+        {"disable",   "coin"},
+        {"enable",    "coin"},
         {"goal",      "coin,val"},
         {"myprice",   "base,rel"},
-        {"enable",    "coin"},
-        {"disable",   "coin"},
 };
 static const PropertyGroup GROUP1 = {
         DIMOF(PROPS1),
@@ -145,4 +154,65 @@ TEST(PropertyGroupTests, parseHttpHeaders)
     };
     PropertyGroup expectedGroup = {DIMOF(expectedProps), DIMOF(expectedProps), expectedProps};
     ASSERT_EQ(expectedGroup, *group);
+}
+
+TEST(PropertyGroupTests, loadProperties)
+{
+    const char *expectedContents = "autoprice=base,rel,fixed,minprice,maxprice,margin,refbase,refrel,factor,offset\n"
+            "goal=coin,val\n"
+            "myprice=base,rel\n"
+            "enable=coin\n"
+            "disable=coin\n";
+    size_t expectedContentsLen = strlen(expectedContents);
+
+    MockFile file;
+    EXPECT_CALL(file, doOpen("/path/to/file", "rb", _))
+            .WillOnce(Return(true));
+    EXPECT_CALL(file, doSeek(_, _, _))
+            .WillRepeatedly(Return(true));
+    EXPECT_CALL(file, doTell(_))
+            .WillOnce(Return(expectedContentsLen));
+
+    EXPECT_CALL(file, doRead(NotNull(), _, _))
+            .WillOnce(DoAll(SetArrayArgument<0>(expectedContents, expectedContents + expectedContentsLen),
+                            Return(expectedContentsLen)));
+    EXPECT_CALL(file, doClose())
+            .Times(1);
+    err_t err = 0;
+    PropertyGroup *group = load_properties(&file, "/path/to/file", &err);
+    ASSERT_EQ(0, err);
+    ASSERT_NE(nullptr, group);
+    ASSERT_EQ(GROUP1, *group);
+}
+
+TEST(PropertyGroupTests, saveProperties)
+{
+    struct WrittenLines {
+        bool doWrite(const void *ptr, size_t size, err_t *errp)
+        {
+            this->str.append((char *) ptr, size);
+        }
+
+        std::string str;
+    };
+    WrittenLines written_lines;
+
+    const char *expectedContents = "autoprice=base,rel,fixed,minprice,maxprice,margin,refbase,refrel,factor,offset\n"
+            "disable=coin\n"
+            "enable=coin\n"
+            "goal=coin,val\n"
+            "myprice=base,rel\n";
+    size_t expectedContentsLen = strlen(expectedContents);
+
+    MockFile file;
+    EXPECT_CALL(file, doOpen("/path/to/file", "w+b", _))
+            .WillOnce(Return(true));
+    EXPECT_CALL(file, doWrite(NotNull(), _, _))
+            .WillRepeatedly(Invoke(&written_lines, &WrittenLines::doWrite));
+    EXPECT_CALL(file, doClose())
+            .Times(1);
+    err_t err = 0;
+    bool status = save_properties(&GROUP1, &file, "/path/to/file", &err);
+    ASSERT_TRUE(status);
+    ASSERT_EQ(std::string(expectedContents), written_lines.str);
 }

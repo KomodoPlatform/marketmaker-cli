@@ -21,10 +21,11 @@
 #include "property.h"
 #include "strutil.h"
 #include "safe_alloc.h"
+#include "file.h"
 
 static const int INITIAL_CAPACITY = 10;
 
-static char *load_file_contents(const char *path, err_t *errp);
+static char *load_file_contents(AbstractFile *absFile, const char *path, err_t *errp);
 
 PropertyGroup *parse_properties(const char *str, char separator, int options, err_t *errp)
 {
@@ -62,9 +63,9 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
     return NULL;
 }
 
-PropertyGroup *load_properties(const char *path, err_t *err)
+PropertyGroup *load_properties(AbstractFile *absFile, const char *path, err_t *err)
 {
-    char *buffer = load_file_contents(path, err);
+    char *buffer = load_file_contents(absFile, path, err);
     PropertyGroup *group = (*err == 0) ? parse_properties(buffer, '=', 0, err) : NULL;
     if (group != NULL) {
         sort_properties(group);
@@ -73,37 +74,35 @@ PropertyGroup *load_properties(const char *path, err_t *err)
     return group;
 }
 
-char *load_file_contents(const char *path, err_t *errp)
+char *load_file_contents(AbstractFile *absFile, const char *path, err_t *errp)
 {
-    FILE *file = fopen(path, "rb");
-    if (file == NULL) {
-        *errp = errno;
+    if (!absFile->open(absFile, path, "rb", errp)) {
         return NULL;
     }
     char *buffer = NULL;
-    if (fseek(file, 0, SEEK_END) >= 0) {
-        long length = ftell(file);
-        fseek(file, 0, SEEK_SET);
+    if (absFile->seek(absFile, 0, SEEK_END, errp)) {
+        long length = absFile->tell(absFile, errp);
+        absFile->seek(absFile, 0, SEEK_SET, errp);
         buffer = safe_malloc((size_t) length + 1);
-        fread(buffer, 1, (size_t) length, file);
+        absFile->read(absFile, buffer, (size_t) length, errp);
         buffer[length] = '\0';
     }
-    fclose(file);
+    absFile->close(absFile);
     return buffer;
 }
 
-bool save_properties(const PropertyGroup *group, const char *path, err_t *err)
+bool save_properties(const PropertyGroup *group, AbstractFile *absFile, const char *path, err_t *err)
 {
+    char line[256];
     *err = 0;
-    FILE *file = fopen(path, "w+b");
-    if (file == NULL) {
-        *err = errno;
+    if (!absFile->open(absFile, path, "w+b", err)) {
         return false;
     }
     for (int i = 0; i < group->size; i++) {
-        fprintf(file, "%s=%s\n", group->properties[i].key, group->properties[i].value);
+        snprintf(line, sizeof(line), "%s=%s\n", group->properties[i].key, group->properties[i].value);
+        absFile->write(absFile, line, strlen(line), err);
     }
-    fclose(file);
+    absFile->close(absFile);
     return true;
 }
 

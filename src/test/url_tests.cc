@@ -13,20 +13,20 @@ TEST(UrlTests, parseValidUrl)
     ASSERT_EQ(7783, url.port);
 }
 
-TEST(UrlTests, parseInvalidHttpsUrl)
+class InvalidUrlTest : public ::testing::TestWithParam<const char *> {};
+
+TEST_P(InvalidUrlTest, parseInvalidUrl)
 {
     err_t err;
     URL url;
-    bool result = parse_url("https://localhost:7783", &url, &err);
+    bool result = parse_url(GetParam(), &url, &err);
     ASSERT_FALSE(result);
     ASSERT_NE(0, err);
 }
 
-TEST(UrlTests, parseInvalidUrl)
-{
-    err_t err;
-    URL url;
-    bool result = parse_url("localhost:7783", &url, &err);
-    ASSERT_FALSE(result);
-    ASSERT_NE(0, err);
-}
+INSTANTIATE_TEST_CASE_P(InvalidUrlTestCases, InvalidUrlTest, ::testing::Values(
+        "https://localhost:7783",
+        "localhost:7783",
+        "http://localhost",
+        "http://localhost:70000"
+));

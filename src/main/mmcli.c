@@ -27,6 +27,7 @@
 #include "path.h"
 #include "sys_socket.h"
 #include "safe_alloc.h"
+#include "sys_file.h"
 
 static const char *const CONFIG_PATH  = ".mmcli.config";
 static const char *const API_PATH     = ".mmcli.api";
@@ -63,7 +64,9 @@ int main(int argc, char *argv[])
     const char *programPath = argv[0];
     err_t err;
     if ((argc <= 1) || strequal(argv[1], "-h") || strequal(argv[1], "--help")) {
-        PropertyGroup *api = load_properties(apiPath, &err);
+        SysFile file;
+        sys_file_init(&file);
+        PropertyGroup *api = load_properties(&file.af, apiPath, &err);
         print_help(programPath, api);
         return EXIT_SUCCESS;
     }
@@ -235,12 +238,16 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
                 {KEY_USERPASS, userpass}
         };
         PropertyGroup config = {DIMOF(props), DIMOF(props), props};
-        if (!save_properties(&config, configPath, errp)) {
+        SysFile file;
+        sys_file_init(&file);
+        if (!save_properties(&config, &file.af, configPath, errp)) {
             print_syserr("saving config file", *errp);
         }
         return NULL;
     }
-    PropertyGroup *config = load_properties(configPath, errp);
+    SysFile file;
+    sys_file_init(&file);
+    PropertyGroup *config = load_properties(&file.af, configPath, errp);
     if (*errp != 0) {
         if (*errp != ENOENT) {
             print_syserr("loading config file", *errp);
@@ -264,7 +271,9 @@ const PropertyGroup *handle_api(const char *method, const char *programPath, con
 
     PropertyGroup *api = NULL;
     if (!doRefresh) {
-        api = load_properties(apiPath, errp);
+        SysFile file;
+        sys_file_init(&file);
+        api = load_properties(&file.af, apiPath, errp);
         if ((*errp != 0) && (*errp != ENOENT)) {
             print_syserr("loading api", *errp);
             return NULL;
@@ -274,12 +283,14 @@ const PropertyGroup *handle_api(const char *method, const char *programPath, con
     if (api == NULL) {
         SysSocket sock;
         sys_socket_init(&sock);
-        api = fetch_api((AbstractSocket *) &sock, url, errp);
+        api = fetch_api(&sock.as, url, errp);
         if (*errp != 0) {
             print_syserr("fetching api", *errp);
             return NULL;
         }
-        if (!save_properties(api, apiPath, errp)) {
+        SysFile file;
+        sys_file_init(&file);
+        if (!save_properties(api, &file.af, apiPath, errp)) {
             print_syserr("saving api", *errp);
             return NULL;
         }

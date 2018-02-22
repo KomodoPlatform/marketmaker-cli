@@ -17,6 +17,7 @@
 #define MARKETMAKER_CLI_PROPERTY_H
 
 #include "basic.h"
+#include "file.h"
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -52,9 +53,9 @@ size_t longest_key_len(const PropertyGroup *group);
 
 PropertyGroup *parse_properties(const char *str, char separator, int options, err_t *errp);
 
-PropertyGroup *load_properties(const char *path, err_t *err);
+PropertyGroup *load_properties(AbstractFile *absFile, const char *path, err_t *err);
 
-bool save_properties(const PropertyGroup *group, const char *path, err_t *err);
+bool save_properties(const PropertyGroup *group, AbstractFile *absFile, const char *path, err_t *err);
 
 void sort_properties(const PropertyGroup *group);
 
