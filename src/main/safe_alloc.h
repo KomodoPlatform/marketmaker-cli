@@ -13,31 +13,23 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef MARKETMAKER_CLI_STRUTIL_H
-#define MARKETMAKER_CLI_STRUTIL_H
+#ifndef MARKETMAKER_CLI_SAFE_ALLOC_H
+#define MARKETMAKER_CLI_SAFE_ALLOC_H
 
-#include <string.h>
-#include <stdbool.h>
-#include <monetary.h>
+#include <stddef.h>
 
-#ifdef __cpluscplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-static inline bool strequal(const char *s1, const char *s2) {
-    return strcmp(s1, s2) == 0;
-}
+void *safe_malloc(size_t size);
 
-static inline bool strequalIgnoreCase(const char *s1, const char *s2) {
-    return strcasecmp(s1, s2) == 0;
-}
+void *safe_realloc(void *data, size_t size);
 
-char *strtrim(char *s);
+char *safe_strdup(const char *str);
 
-ssize_t strstartswith(const char *s, const char *prefix);
-
-#ifdef __cpluscplus
+#ifdef __cplusplus
 };
 #endif
 
-#endif //MARKETMAKER_CLI_STRUTIL_H
+#endif //MARKETMAKER_CLI_SAFE_ALLOC_H

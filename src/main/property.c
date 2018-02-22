@@ -20,6 +20,7 @@
 
 #include "property.h"
 #include "strutil.h"
+#include "safe_alloc.h"
 
 static const int INITIAL_CAPACITY = 10;
 
@@ -28,17 +29,8 @@ static char *load_file_contents(const char *path, err_t *errp);
 PropertyGroup *parse_properties(const char *str, char separator, int options, err_t *errp)
 {
     *errp = 0;
-    char *copy = strdup(str);
-    if (copy == NULL) {
-        *errp = ENOMEM;
-        return NULL;
-    }
+    char *copy = safe_strdup(str);
     PropertyGroup *group = alloc_properties(INITIAL_CAPACITY);
-    if (group == NULL) {
-        free(copy);
-        *errp = ENOMEM;
-        return NULL;
-    }
     group->size = 0;
     char *next_line = NULL;
     for (char *s = copy; s != NULL; s = next_line) {
@@ -92,13 +84,9 @@ char *load_file_contents(const char *path, err_t *errp)
     if (fseek(file, 0, SEEK_END) >= 0) {
         long length = ftell(file);
         fseek(file, 0, SEEK_SET);
-        buffer = malloc((size_t) length + 1);
-        if (buffer != NULL) {
-            fread(buffer, 1, (size_t) length, file);
-            buffer[length] = '\0';
-        } else {
-            *errp = ENOMEM;
-        }
+        buffer = safe_malloc((size_t) length + 1);
+        fread(buffer, 1, (size_t) length, file);
+        buffer[length] = '\0';
     }
     fclose(file);
     return buffer;
@@ -127,7 +115,7 @@ PropertyGroup *alloc_properties(size_t newCapacity)
 PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
 {
     size_t newTotalSize = sizeof(PropertyGroup) + newCapacity * sizeof(Property);
-    PropertyGroup *newGroup = realloc(group, newTotalSize);
+    PropertyGroup *newGroup = safe_realloc(group, newTotalSize);
     if (group == NULL) {
         newGroup->size = 0;
     }
@@ -163,10 +151,6 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
     *errp = 0;
     if (group->size == group->capacity) {
         group = realloc_properties(group, group->capacity * 2);
-        if (group == NULL) {
-            *errp = ENOMEM;
-            return NULL;
-        }
     }
     Property *prop = &group->properties[group->size];
     prop->key = key;

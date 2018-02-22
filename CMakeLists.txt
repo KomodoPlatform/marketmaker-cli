@@ -33,6 +33,8 @@ separate_arguments(CFLAGS_LIST)
 set(SOURCE_FILES
         src/main/mmcli.c
         src/main/basic.h
+        src/main/safe_alloc.c
+        src/main/safe_alloc.h
         src/main/property.c
         src/main/property.h
         src/main/strutil.c
@@ -91,10 +93,11 @@ add_executable(tests
         src/test/url_tests.cc
         src/test/property_tests.cc
         src/main/basic.h
+        src/main/safe_alloc.c
+        src/main/safe_alloc.h
         src/main/property.c
         src/main/strutil.c
         src/main/http.c
-        src/main/sys_socket.c
         src/main/url.c
         src/main/api_help.c
         src/test/api_help_tests.cc
@@ -103,7 +106,8 @@ add_executable(tests
         src/test/http_tests.cc
         src/test/CppSocket.h
         src/test/CppSocket.cc
-        src/test/MockSocket.h)
+        src/test/MockSocket.h
+        )
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)

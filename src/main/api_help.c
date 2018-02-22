@@ -19,6 +19,7 @@
 #include "json.h"
 #include "http.h"
 #include "property.h"
+#include "safe_alloc.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -37,17 +38,8 @@ static char *strip_params(char *src);
 PropertyGroup *parse_api_help(const char *str, err_t *errp)
 {
     *errp = 0;
-    char *copy = strdup(str);
-    if (copy == NULL) {
-        *errp = ENOMEM;
-        return NULL;
-    }
+    char *copy = safe_strdup(str);
     PropertyGroup *group = alloc_properties(INITIAL_CAPACITY);
-    if (group == NULL) {
-        free(copy);
-        *errp = ENOMEM;
-        return NULL;
-    }
     group->size = 0;
     char *s = copy;
     char *p;

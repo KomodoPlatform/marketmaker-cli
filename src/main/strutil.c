@@ -41,23 +41,6 @@ char *strtrim(char *str)
     return str;
 }
 
-char *strcopy(char *dest, const char *src, size_t len)
-{
-    if (len <= 0) {
-        *dest = '\0';
-        return NULL;
-    }
-    len--;
-    if (len > 0) {
-        strncpy(dest, src, len);
-    } else {
-        len = 0;
-    }
-    dest[len] = '\0';
-
-    return dest;
-}
-
 ssize_t strstartswith(const char *s, const char *prefix)
 {
     size_t len = strlen(prefix);

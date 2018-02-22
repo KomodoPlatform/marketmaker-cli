@@ -26,6 +26,7 @@
 #include "json.h"
 #include "path.h"
 #include "sys_socket.h"
+#include "safe_alloc.h"
 
 static const char *const CONFIG_PATH  = ".mmcli.config";
 static const char *const API_PATH     = ".mmcli.api";
@@ -130,16 +131,8 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
                                 int argc, char *argv[], err_t *errp)
 {
     *errp = 0;
-    char *names = strdup(paramNames);
-    if (names == NULL) {
-        *errp = ENOMEM;
-        return NULL;
-    }
+    char *names = safe_strdup(paramNames);
     PropertyGroup *paramList = realloc_properties(NULL, 10);
-    if (paramList == NULL) {
-        *errp = ENOMEM;
-        return NULL;
-    }
     paramList->size = 0;
     add_property(paramList, "method", method, errp);
     add_property(paramList, KEY_USERPASS, userpass, errp);

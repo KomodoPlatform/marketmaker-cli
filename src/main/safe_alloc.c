@@ -13,31 +13,39 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef MARKETMAKER_CLI_STRUTIL_H
-#define MARKETMAKER_CLI_STRUTIL_H
+#include "safe_alloc.h"
 
+#include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <monetary.h>
+#include <stdio.h>
 
-#ifdef __cpluscplus
-extern "C" {
-#endif
+static void assert_not_null(void *ptr);
 
-static inline bool strequal(const char *s1, const char *s2) {
-    return strcmp(s1, s2) == 0;
+void *safe_malloc(size_t size)
+{
+    void *data = malloc(size);
+    assert_not_null(data);
+    return data;
 }
 
-static inline bool strequalIgnoreCase(const char *s1, const char *s2) {
-    return strcasecmp(s1, s2) == 0;
+char *safe_strdup(const char *str)
+{
+    char *copy = strdup(str);
+    assert_not_null(copy);
+    return copy;
 }
 
-char *strtrim(char *s);
+void *safe_realloc(void *data, size_t size)
+{
+    void *newData = realloc(data, size);
+    assert_not_null(newData);
+    return newData;
+}
 
-ssize_t strstartswith(const char *s, const char *prefix);
-
-#ifdef __cpluscplus
-};
-#endif
-
-#endif //MARKETMAKER_CLI_STRUTIL_H
+void assert_not_null(void *ptr)
+{
+    if (ptr == NULL) {
+        fputs("Out of memory!", stderr);
+        exit(-1);
+    }
+}

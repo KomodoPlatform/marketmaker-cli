@@ -15,6 +15,7 @@
 
 #include "url.h"
 #include "strutil.h"
+#include "safe_alloc.h"
 
 #include <limits.h>
 #include <errno.h>
@@ -28,18 +29,16 @@ static bool resolve_hostname(const char *name, struct in_addr *addr, err_t *errp
 
 bool parse_url(const char *strUrl, URL *url, err_t *errp)
 {
-    char copy[64];
-    char *hostname;
-
-    strcopy(copy, strUrl, sizeof(copy));
+    *errp = 0;
     memset(url, 0, sizeof(*url));
 
-    ssize_t index;
-    if ((index = strstartswith(copy, "http://")) < 0) {
+    ssize_t index = strstartswith(strUrl, "http://");
+    if (index < 0) {
         *errp = EINVAL;
         return false;
     }
-    hostname = &copy[index];
+    char *copy = safe_strdup(strUrl);
+    char *hostname = &copy[index];
     char *p;
     if ((p = strchr(hostname, ':')) != NULL) {
         *p++ = '\0';
@@ -53,6 +52,7 @@ bool parse_url(const char *strUrl, URL *url, err_t *errp)
     } else {
         *errp = EINVAL;
     }
+    free(copy);
     return (*errp == 0);
 }
 
