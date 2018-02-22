@@ -19,7 +19,7 @@
 #define MARKETMAKER_CLI_API_HELP_H
 
 #include "property.h"
-#include "url.h"
+#include "socket.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +27,7 @@ extern "C" {
 
 PropertyGroup *parse_api_help(const char *str, err_t *errp);
 
-PropertyGroup *fetch_api(const URL *url, err_t *errp);
+PropertyGroup *fetch_api(AbstractSocket *absSocket, const URL *url, err_t *errp);
 
 #ifdef __cplusplus
 };

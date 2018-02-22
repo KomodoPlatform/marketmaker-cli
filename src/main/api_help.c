@@ -88,7 +88,7 @@ PropertyGroup *parse_api_help(const char *str, err_t *errp)
     return NULL;
 }
 
-PropertyGroup *fetch_api(const URL *url, err_t *errp)
+PropertyGroup *fetch_api(AbstractSocket *absSocket, const URL *url, err_t *errp)
 {
     *errp = 0;
     Property props[] = {
@@ -100,7 +100,7 @@ PropertyGroup *fetch_api(const URL *url, err_t *errp)
         return NULL;
     }
     size_t responseLen = 0;
-    char *response = http_post(url, jsonRequest, strlen(jsonRequest), &responseLen, errp);
+    char *response = http_post(absSocket, url, jsonRequest, strlen(jsonRequest), &responseLen, errp);
     free(jsonRequest);
     if (*errp != 0) {
         return NULL;

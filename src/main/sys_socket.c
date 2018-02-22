@@ -25,6 +25,8 @@
 #define min(a, b)   ((a) < (b) ? (a) : (b))
 #endif
 
+#define INVALID_SOCKET  ((SOCKET) - 1)
+
 typedef enum {
     SEL_READ,
     SEL_WRITE,
@@ -35,12 +37,12 @@ static bool socket_get_error(SOCKET sockfd, err_t *errp);
 
 static bool socket_select(int sockfd, SelectSet setId, int tmout_ms, err_t *errp);
 
-static size_t socket_read(SOCKET sockfd, void *buf, size_t nbyte, int tmout_ms, err_t *errp);
+static size_t socket_read(SysSocket *sock, void *buf, size_t nbyte, int tmout_ms, err_t *errp);
 
-SOCKET socket_connect(const URL *url, int tmout_ms, err_t *errp)
+static bool socket_connect(AbstractSocket *absSocket, const URL *url, int tmout_ms, err_t *errp)
 {
+    SysSocket *sock = (SysSocket *) absSocket;
     struct sockaddr_in sin;
-    SOCKET sockfd;
     int flags;
 
     memset(&sin, 0, sizeof(sin));
@@ -48,33 +50,43 @@ SOCKET socket_connect(const URL *url, int tmout_ms, err_t *errp)
     memcpy(&sin.sin_addr, &url->addr, sizeof(url->addr));
     sin.sin_port = htons(url->port);
     *errp = 0;
-    if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+    if ((sock->sockfd = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         *errp = errno;
-    } else if (((flags = fcntl(sockfd, F_GETFL, 0)) < 0) ||
-               (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK, 0) < 0)) {
+    } else if (((flags = fcntl(sock->sockfd, F_GETFL, 0)) < 0) ||
+               (fcntl(sock->sockfd, F_SETFL, flags | O_NONBLOCK, 0) < 0)) {
         *errp = errno;
-    } else if (connect(sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+    } else if (connect(sock->sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
         if ((errno == EINPROGRESS) || (errno == EAGAIN)) {
-            socket_select(sockfd, SEL_WRITE, tmout_ms, errp);
+            socket_select(sock->sockfd, SEL_WRITE, tmout_ms, errp);
         } else {
             *errp = errno;
         }
     } else {
         *errp = 0;
     }
-    if ((*errp != 0) && (sockfd != INVALID_SOCKET)) {
-        close(sockfd);
-        sockfd = INVALID_SOCKET;
+    if ((*errp != 0) && (sock->sockfd != INVALID_SOCKET)) {
+        close(sock->sockfd);
+        sock->sockfd = INVALID_SOCKET;
     }
-    return sockfd;
+    return *errp == 0;
 }
 
-bool socket_write(SOCKET sockfd, const void *data, size_t len, err_t *errp)
+static void socket_disconnect(AbstractSocket *absSocket)
 {
+    SysSocket *sock = (SysSocket *) absSocket;
+
+    if (sock->sockfd != INVALID_SOCKET) {
+        close(sock->sockfd);
+    }
+}
+
+static bool socket_write(AbstractSocket *absSocket, const void *data, size_t len, err_t *errp)
+{
+    SysSocket *sock = (SysSocket *) absSocket;
     *errp = 0;
     const char *p = data;
     for (size_t ofs = 0; ofs < len;) {
-        ssize_t n = write(sockfd, &p[ofs], len - ofs);
+        ssize_t n = write(sock->sockfd, &p[ofs], len - ofs);
         if (n <= 0) {
             *errp = errno;
             return false;
@@ -84,29 +96,32 @@ bool socket_write(SOCKET sockfd, const void *data, size_t len, err_t *errp)
     return true;
 }
 
-char *socket_read_text(SOCKET sockfd, const char *terminator, int tmout_ms, SockReadBuffer *pbBuffer, err_t *errp)
+static char *socket_read_text(AbstractSocket *absSocket, const char *terminator, int tmout_ms,
+                              err_t *errp)
 {
+    SysSocket *sock = (SysSocket *) absSocket;
+    SockReadBuffer *rb = &sock->readBuffer;
     char *data = NULL;
     size_t dataSize = 0;
     for (;;) {
-        if (pbBuffer->position == 0) {
-            pbBuffer->position = socket_read(sockfd, pbBuffer->data, sizeof(pbBuffer->data), tmout_ms, errp);
+        if (rb->position == 0) {
+            rb->position = socket_read(sock, rb->data, sizeof(rb->data), tmout_ms, errp);
             if (*errp != 0) {
                 break;
             }
         }
-        // pbBuffer->filler makes this always safe
-        pbBuffer->data[pbBuffer->position] = '\0';
-        char *p = strstr(pbBuffer->data, terminator);
-        size_t n = (p == NULL) ? pbBuffer->position : (p - pbBuffer->data) + strlen(terminator);
+        // rb->filler makes this always safe
+        rb->data[rb->position] = '\0';
+        char *p = strstr(rb->data, terminator);
+        size_t n = (p == NULL) ? rb->position : (p - rb->data) + strlen(terminator);
         if (n > 0) {
             // +1: always leave room for an extra '\0'
             data = realloc(data, dataSize + n + 1);
-            memcpy(&data[dataSize], pbBuffer->data, n);
+            memcpy(&data[dataSize], rb->data, n);
             dataSize += n;
             // shift left left-out data
-            if ((pbBuffer->position -= n) > 0) {
-                memmove(pbBuffer->data, &pbBuffer->data[n], pbBuffer->position);
+            if ((rb->position -= n) > 0) {
+                memmove(rb->data, &rb->data[n], rb->position);
             }
         }
         if (p != NULL) {
@@ -123,27 +138,30 @@ char *socket_read_text(SOCKET sockfd, const char *terminator, int tmout_ms, Sock
     return data;
 }
 
-void *socket_read_binary(SOCKET sockfd, size_t expectedSize, size_t *actualSize, int tmout_ms, SockReadBuffer *pbBuffer,
-                         err_t *errp)
+static void *socket_read_binary(AbstractSocket *absSocket, size_t expectedSize, size_t *actualSize, int tmout_ms,
+                                err_t *errp)
 {
+    SysSocket *sock = (SysSocket *) absSocket;
+    SockReadBuffer *rb = &sock->readBuffer;
+
     *actualSize = 0;
     *errp = 0;
     char *data = NULL;
     size_t dataSize = 0;
     while (dataSize < expectedSize) {
-        if (pbBuffer->position == 0) {
-            size_t nbytesToRead = min(sizeof(pbBuffer->data), expectedSize - dataSize);
-            pbBuffer->position = socket_read(sockfd, pbBuffer->data, nbytesToRead, tmout_ms, errp);
+        if (rb->position == 0) {
+            size_t nbytesToRead = min(sizeof(rb->data), expectedSize - dataSize);
+            rb->position = socket_read(sock, rb->data, nbytesToRead, tmout_ms, errp);
             if (*errp != 0) {
                 break;
             }
             // assert pbBuffer->position > 0
         }
         // +1: always leave for an extra '\0'
-        data = realloc(data, dataSize + pbBuffer->position + 1);
-        memcpy(&data[dataSize], pbBuffer->data, pbBuffer->position);
-        dataSize += pbBuffer->position;
-        pbBuffer->position = 0;
+        data = realloc(data, dataSize + rb->position + 1);
+        memcpy(&data[dataSize], rb->data, rb->position);
+        dataSize += rb->position;
+        rb->position = 0;
     }
     if (*errp != 0) {
         free(data);
@@ -156,9 +174,16 @@ void *socket_read_binary(SOCKET sockfd, size_t expectedSize, size_t *actualSize,
     return data;
 }
 
-void sockReadBuffer_init(SockReadBuffer *pbBuffer)
+void sys_socket_init(SysSocket *sock)
 {
-    pbBuffer->position = 0;
+    sock->as.connect = socket_connect;
+    sock->as.write = socket_write;
+    sock->as.read_text = socket_read_text;
+    sock->as.read_binary = socket_read_binary;
+    sock->as.disconnect = socket_disconnect;
+
+    sock->sockfd = INVALID_SOCKET;
+    sock->readBuffer.position = 0;
 }
 
 bool socket_select(int sockfd, SelectSet setId, int tmout_ms, err_t *errp)
@@ -209,10 +234,10 @@ bool socket_get_error(SOCKET sockfd, err_t *errp)
     return *errp == 0;
 }
 
-size_t socket_read(SOCKET sockfd, void *buf, size_t nbyte, int tmout_ms, err_t *errp)
+size_t socket_read(SysSocket *sock, void *buf, size_t nbyte, int tmout_ms, err_t *errp)
 {
-    if (socket_select(sockfd, SEL_READ, tmout_ms, errp)) {
-        ssize_t rc = read(sockfd, buf, nbyte);
+    if (socket_select(sock->sockfd, SEL_READ, tmout_ms, errp)) {
+        ssize_t rc = read(sock->sockfd, buf, nbyte);
         if (rc > 0) {
             return (size_t) rc;
         }

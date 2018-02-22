@@ -44,6 +44,7 @@ set(SOURCE_FILES
         src/main/url.c
         src/main/url.h
         src/main/sys_socket.c
+        src/main/socket.h
         src/main/sys_socket.h
         src/main/http.c
         src/main/http.h
@@ -97,9 +98,12 @@ add_executable(tests
         src/main/url.c
         src/main/api_help.c
         src/test/api_help_tests.cc
-        src/test/property_utils.cc
         src/main/json.c
-        src/test/json_tests.cc)
+        src/test/json_tests.cc
+        src/test/http_tests.cc
+        src/test/CppSocket.h
+        src/test/CppSocket.cc
+        )
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)

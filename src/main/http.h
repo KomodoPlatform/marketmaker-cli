@@ -22,12 +22,14 @@
 #define MARKETMAKER_CLI_HTTP_H
 
 #include "url.h"
+#include "socket.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, size_t *responseBodyLen, err_t *errp);
+void *http_post(AbstractSocket *socket, const URL *url, const void *requestBody, size_t requestBodyLen,
+                size_t *responseBodyLen, err_t *errp);
 
 #ifdef __cplusplus
 };

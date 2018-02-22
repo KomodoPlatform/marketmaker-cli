@@ -3,8 +3,7 @@
 
 #include <property.h>
 
-#include <string.h>
-
+#include <cstring>
 #include <iostream>
 
 static inline std::ostream& operator<<(std::ostream &os, const PropertyGroup &group) {

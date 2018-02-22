@@ -13,35 +13,32 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef MARKETMAKER_CLI_SYS_SOCKET_H
-#define MARKETMAKER_CLI_SYS_SOCKET_H
+#ifndef MARKETMAKER_CLI_SOCKET_H
+#define MARKETMAKER_CLI_SOCKET_H
 
 #include "url.h"
-#include "socket.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef int SOCKET;
+typedef struct _AbstractSocket AbstractSocket;
 
-typedef struct {
-    char    data[2048];
-    // to guarantee that it's always safe to do data[position] = '\0'
-    char    filler;
-    size_t  position;
-} SockReadBuffer;
+struct _AbstractSocket {
+    bool (*connect)(AbstractSocket *socket, const URL *url, int tmout_ms, err_t *errp);
 
-typedef struct {
-    AbstractSocket  as;
-    SOCKET          sockfd;
-    SockReadBuffer  readBuffer;
-} SysSocket;
+    bool (*write)(AbstractSocket *socket, const void *data, size_t len, err_t *errp);
 
-void sys_socket_init(SysSocket *sock);
+    char *(*read_text)(AbstractSocket *socket, const char *terminator, int tmout_ms, err_t *errp);
+
+    void *(*read_binary)(AbstractSocket *socket, size_t expectedSize, size_t *actualSize, int tmout_ms,
+                         err_t *errp);
+
+    void (*disconnect)(AbstractSocket *socket);
+};
 
 #ifdef __cplusplus
 };
 #endif
 
-#endif //MARKETMAKER_CLI_SYS_SOCKET_H
+#endif //MARKETMAKER_CLI_SOCKET_H

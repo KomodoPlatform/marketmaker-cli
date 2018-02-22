@@ -25,6 +25,7 @@
 #include "http.h"
 #include "json.h"
 #include "path.h"
+#include "sys_socket.h"
 
 static const char *const CONFIG_PATH  = ".mmcli.config";
 static const char *const API_PATH     = ".mmcli.api";
@@ -108,7 +109,9 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     size_t responseLen = 0;
-    char *response = http_post(&url, jsonRequest, strlen(jsonRequest), &responseLen, &err);
+    SysSocket sock;
+    sys_socket_init(&sock);
+    char *response = http_post((AbstractSocket *) &sock, &url, jsonRequest, strlen(jsonRequest), &responseLen, &err);
     if (err != 0) {
         print_syserr("sending/receiving HTTP message", err);
         return EXIT_FAILURE;
@@ -276,7 +279,9 @@ const PropertyGroup *handle_api(const char *method, const char *programPath, con
     }
 
     if (api == NULL) {
-        api = fetch_api(url, errp);
+        SysSocket sock;
+        sys_socket_init(&sock);
+        api = fetch_api((AbstractSocket *) &sock, url, errp);
         if (*errp != 0) {
             print_syserr("fetching api", *errp);
             return NULL;

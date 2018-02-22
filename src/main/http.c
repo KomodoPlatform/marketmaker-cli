@@ -29,11 +29,10 @@ static const int READ_TIMEOUT = 5000;
 
 static unsigned long http_header_get_ulong(PropertyGroup *headers, const char *key, err_t *errp);
 
-void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, size_t *responseBodyLen, err_t *errp)
+void *http_post(AbstractSocket *absSocket, const URL *url, const void *requestBody, size_t requestBodyLen,
+                size_t *responseBodyLen, err_t *errp)
 {
-    *errp = 0;
-    SOCKET sockfd = socket_connect(url, CONNECT_TIMEOUT, errp);
-    if (*errp != 0) {
+    if (!absSocket->connect(absSocket, url, CONNECT_TIMEOUT, errp)) {
         return NULL;
     }
     char requestHeader[128];
@@ -42,32 +41,26 @@ void *http_post(const URL *url, const void *requestBody, size_t requestBodyLen, 
             "Content-Length: %d\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
             "\r\n", (int) strlen(requestBody));
-    socket_write(sockfd, requestHeader, strlen(requestHeader), errp);
-    if (*errp == 0) {
-        socket_write(sockfd, requestBody, requestBodyLen, errp);
-    }
 
     void *responseBody = NULL;
-
-    if (*errp == 0) {
-        SockReadBuffer buffer;
-        sockReadBuffer_init(&buffer);
-        char *responseHeader;
-        if ((responseHeader = socket_read_text(sockfd, "\r\n\r\n", READ_TIMEOUT, &buffer, errp)) != NULL) {
+    if (absSocket->write(absSocket, requestHeader, strlen(requestHeader), errp)
+        && absSocket->write(absSocket, requestBody, requestBodyLen, errp)) {
+        char *responseHeader = absSocket->read_text(absSocket, "\r\n\r\n", READ_TIMEOUT, errp);
+        if (responseHeader != NULL) {
             PropertyGroup *headers = parse_properties(responseHeader, ':', PARSE_OPT_IGNORE_INVALID_LINES, errp);
             free(responseHeader);
             if (*errp == 0) {
                 size_t contentLength = http_header_get_ulong(headers, "Content-Length", errp);
                 free(headers);
                 if (*errp == 0) {
-                    responseBody = socket_read_binary(sockfd, contentLength, responseBodyLen, READ_TIMEOUT, &buffer,
-                                                      errp);
+                    responseBody = absSocket->read_binary(absSocket, contentLength, responseBodyLen, READ_TIMEOUT,
+                                                          errp);
                 }
             }
         }
     }
 
-    close(sockfd);
+    absSocket->disconnect(absSocket);
     return responseBody;
 }
 
