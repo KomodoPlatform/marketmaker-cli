@@ -3,6 +3,7 @@
 #define MARKETMAKER_CLI_CPPSOCKET_H
 
 #include <socket.h>
+#include <string>
 
 class CppSocket : AbstractSocket {
 public:
@@ -12,7 +13,7 @@ public:
 
     virtual bool doWrite(const void *data, size_t len, err_t *errp) = 0;
 
-    virtual char *doReadText(const char *terminator, int tmout_ms, err_t *errp) = 0;
+    virtual char *doReadText(const std::string &terminator, int tmout_ms, err_t *errp) = 0;
 
     virtual void *doReadBinary(size_t expectedSize, size_t *actualSize, int tmout_ms, err_t *errp) = 0;
 

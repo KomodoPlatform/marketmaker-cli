@@ -34,7 +34,7 @@ TEST(HttpTests, postBalanceMethod)
     EXPECT_CALL(sock, doWrite(_, _, _))
             .Times(AtLeast(1))
             .WillRepeatedly(Return(true));
-    EXPECT_CALL(sock, doReadText(_, _, _))
+    EXPECT_CALL(sock, doReadText("\r\n\r\n", _, _))
             .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
                     "Access-Control-Allow-Origin: *\r\n"
                     "Access-Control-Allow-Credentials: true\r\n"
