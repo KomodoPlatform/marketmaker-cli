@@ -103,7 +103,7 @@ add_executable(tests
         src/test/http_tests.cc
         src/test/CppSocket.h
         src/test/CppSocket.cc
-        )
+        src/test/MockSocket.h)
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)

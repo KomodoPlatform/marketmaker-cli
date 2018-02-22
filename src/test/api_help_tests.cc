@@ -1,7 +1,12 @@
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-#include <api_help.h>
+#include "MockSocket.h"
 
+using ::testing::_;
+using ::testing::AtLeast;
+using ::testing::Return;
+
+#include "api_help.h"
 #include "property_utils.h"
 
 TEST(ApiHelpTests, parseCurrentHelp) {
@@ -135,5 +140,62 @@ TEST(ApiHelpTests, parseCurrentHelp) {
     };
     PropertyGroup *api = parse_api_help(currentHelp, &err);
     ASSERT_EQ(0, err);
+    ASSERT_EQ(expectedApi, *api);
+}
+
+TEST(ApiHelpTests, fetchApi)
+{
+    MockSocket sock;
+    EXPECT_CALL(sock, doConnect(_, _, _))
+            .WillOnce(Return(true));
+    EXPECT_CALL(sock, doWrite(_, _, _))
+            .Times(AtLeast(1))
+            .WillRepeatedly(Return(true));
+    EXPECT_CALL(sock, doReadText(_, _, _))
+            .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
+                                            "Access-Control-Allow-Origin: *\r\n"
+                                            "Access-Control-Allow-Credentials: true\r\n"
+                                            "Access-Control-Allow-Methods: GET, POST\r\n"
+                                            "Cache-Control :  no-cache, no-store, must-revalidate\r\n"
+                                            "Content-Length :       323\r\n\r\n")));
+    const char *expectedReponseBody = strdup(R"({"result":" available localhost RPC commands:
+ setprice(base, rel, price, broadcast=1)
+autoprice(base, rel, fixed, minprice, maxprice, margin, refbase, refrel, factor, offset)*
+goal(coin=*, val=<autocalc>)
+myprice(base, rel)
+enable(coin)
+disable(coin)
+jpg(srcfile, destfile, power2=7, password, data=, required, ind=0)
+"}
+)");
+    EXPECT_CALL(sock, doReadBinary(323, _, _, _))
+            .WillOnce(Return((void *) expectedReponseBody));
+    EXPECT_CALL(sock, doDisconnect())
+            .Times(1);
+    err_t err;
+    URL url;
+    parse_url("http://localhost:7783", &url, &err);
+    ASSERT_EQ(0, err);
+
+    size_t responseBodyLen;
+    PropertyGroup *api = fetch_api((AbstractSocket *) &sock, &url, &err);
+    ASSERT_EQ(0, err);
+    ASSERT_NE(nullptr, api);
+
+    Property props[] = {
+            {"setprice", "base,rel,price,broadcast"},
+            {"autoprice", "base,rel,fixed,minprice,maxprice,margin,refbase,refrel,factor,offset"},
+            {"goal", "coin,val"},
+            {"myprice", "base,rel"},
+            {"enable", "coin"},
+            {"disable", "coin"},
+            {"jpg", "srcfile,destfile,power2,password,data,required,ind"},
+            {"help", ""},
+    };
+    PropertyGroup expectedApi = {
+            DIMOF(props),
+            DIMOF(props),
+            props
+    };
     ASSERT_EQ(expectedApi, *api);
 }
