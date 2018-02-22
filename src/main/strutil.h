@@ -18,7 +18,7 @@
 
 #include <string.h>
 #include <stdbool.h>
-#include <monetary.h>
+#include <stdlib.h>
 
 #ifdef __cpluscplus
 extern "C" {

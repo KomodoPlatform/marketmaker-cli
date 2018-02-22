@@ -17,7 +17,6 @@
 
 #include <string.h>
 #include <ctype.h>
-#include <monetary.h>
 
 char *strtrim(char *str)
 {
