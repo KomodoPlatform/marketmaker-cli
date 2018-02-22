@@ -191,6 +191,7 @@ TEST(PropertyGroupTests, saveProperties)
         bool doWrite(const void *ptr, size_t size, err_t *errp)
         {
             this->str.append((char *) ptr, size);
+            return true;
         }
 
         std::string str;
