@@ -4,7 +4,7 @@ compiler:
   - gcc
 
 install:
-  - pip install --user cpp-coveralls
+  - pip install --user codecov
 
 script:
   - mkdir build && cd build
@@ -13,4 +13,4 @@ script:
   - ./tests
 
 after_success:
-  - coveralls --root .. --exclude="build/googletest-src" --exclude="src/test" -E ".*/feature_tests.*" -E ".*/CMake.*"
+  - codecov --root ..
