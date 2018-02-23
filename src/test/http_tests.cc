@@ -23,6 +23,8 @@
 using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::Return;
+using ::testing::DoAll;
+using ::testing::SetArgPointee;
 
 using namespace std;
 
@@ -57,7 +59,54 @@ TEST(HttpTests, postBalanceMethod)
     void *responseBody = http_post((AbstractSocket *) &sock, &url, requestBody, strlen(requestBody), &responseBodyLen,
                                    &err);
     ASSERT_EQ(0, err);
-    ASSERT_NE(nullptr, requestBody);
+    ASSERT_NE(nullptr, responseBody);
 
     ASSERT_EQ(string(expectedReponseBody), string((char *) responseBody));
+}
+
+TEST(HttpTests, postFailed)
+{
+    MockSocket sock;
+    EXPECT_CALL(sock, doConnect(_, _, _))
+            .WillOnce(DoAll(SetArgPointee<2>(1), Return(false)));
+    err_t err;
+    URL url;
+    parse_url("http://localhost:7783", &url, &err);
+    ASSERT_EQ(0, err);
+
+    auto *requestBody = R"({"method":"balance","coin":"KMD","address":"RSpP2Nffy379SwF1cAkooNg6vwPHpakCpC"})";
+    size_t responseBodyLen;
+    void *responseBody = http_post((AbstractSocket *) &sock, &url, requestBody, strlen(requestBody), &responseBodyLen,
+                                   &err);
+    ASSERT_EQ(1, err);
+    ASSERT_EQ(nullptr, responseBody);
+}
+
+TEST(HttpTests, missingContentLength)
+{
+    MockSocket sock;
+    EXPECT_CALL(sock, doConnect(_, _, _))
+            .WillOnce(Return(true));
+    EXPECT_CALL(sock, doWrite(_, _, _))
+            .Times(AtLeast(1))
+            .WillRepeatedly(Return(true));
+    EXPECT_CALL(sock, doReadText("\r\n\r\n", _, _))
+            .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
+                                            "Access-Control-Allow-Origin: *\r\n"
+                                            "Access-Control-Allow-Credentials: true\r\n"
+                                            "Access-Control-Allow-Methods: GET, POST\r\n"
+                                            "Cache-Control :  no-cache, no-store, must-revalidate\r\n\r\n")));
+    EXPECT_CALL(sock, doDisconnect())
+            .Times(1);
+    err_t err;
+    URL url;
+    parse_url("http://localhost:7783", &url, &err);
+    ASSERT_EQ(0, err);
+
+    auto *requestBody = R"({"method":"balance","coin":"KMD","address":"RSpP2Nffy379SwF1cAkooNg6vwPHpakCpC"})";
+    size_t responseBodyLen;
+    void *responseBody = http_post((AbstractSocket *) &sock, &url, requestBody, strlen(requestBody), &responseBodyLen,
+                                   &err);
+    ASSERT_NE(0, err);
+    ASSERT_EQ(nullptr, responseBody);
 }

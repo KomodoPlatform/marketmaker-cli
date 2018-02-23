@@ -80,14 +80,17 @@ char *load_file_contents(AbstractFile *absFile, const char *path, err_t *errp)
         return NULL;
     }
     char *buffer = NULL;
-    if (absFile->seek(absFile, 0, SEEK_END, errp)) {
-        long length = absFile->tell(absFile, errp);
-        absFile->seek(absFile, 0, SEEK_SET, errp);
+    long length = absFile->size(absFile, errp);
+    if (*errp == 0) {
         buffer = safe_malloc((size_t) length + 1);
         absFile->read(absFile, buffer, (size_t) length, errp);
         buffer[length] = '\0';
     }
     absFile->close(absFile);
+    if (*errp != 0) {
+        free(buffer);
+        buffer = NULL;
+    }
     return buffer;
 }
 

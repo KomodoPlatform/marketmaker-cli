@@ -17,13 +17,9 @@
 
 #include <errno.h>
 
-#include <stdarg.h>
-
 static bool sys_open(AbstractFile *absFile, const char *pathname, const char *mode, err_t *errp);
 
-static bool sys_seek(AbstractFile *absFile, long offset, int whence, err_t *errp);
-
-static long sys_tell(AbstractFile *absFile, err_t *errp);
+static long sys_size(AbstractFile *absFile, err_t *errp);
 
 static size_t sys_read(AbstractFile *absFile, void *ptr, size_t size, err_t *errp);
 
@@ -34,8 +30,7 @@ static void sys_close(AbstractFile *absFile);
 void sys_file_init(SysFile *file)
 {
     file->af.open = sys_open;
-    file->af.seek = sys_seek;
-    file->af.tell = sys_tell;
+    file->af.size = sys_size;
     file->af.read = sys_read;
     file->af.write = sys_write;
     file->af.close = sys_close;
@@ -54,28 +49,27 @@ bool sys_open(AbstractFile *absFile, const char *pathname, const char *mode, err
     return true;
 }
 
-bool sys_seek(AbstractFile *absFile, long offset, int whence, err_t *errp)
-{
-    SysFile *file = (SysFile *) absFile;
-    *errp = 0;
-    if (fseek(file->file, offset, whence) < 0) {
-        *errp = errno;
-        return false;
-    }
-    return true;
-}
-
-long sys_tell(AbstractFile *absFile, err_t *errp)
+long sys_size(AbstractFile *absFile, err_t *errp)
 {
     SysFile *file = (SysFile *) absFile;
     *errp = 0;
 
-    long pos = ftell(file->file);
-    if (pos < 0) {
+    long oldPos = ftell(file->file);
+    if (oldPos < 0) {
         *errp = errno;
         return 0;
     }
-    return pos;
+    if (fseek(file->file, 0, SEEK_END) < 0) {
+        *errp = errno;
+        return 0;
+    }
+    long lastPos = ftell(file->file);
+    if (lastPos < 0) {
+        *errp = errno;
+    }
+    (void) fseek(file->file, oldPos, SEEK_SET);
+
+    return (*errp == 0) ? lastPos : 0;
 }
 
 size_t sys_read(AbstractFile *absFile, void *ptr, size_t size, err_t *errp)

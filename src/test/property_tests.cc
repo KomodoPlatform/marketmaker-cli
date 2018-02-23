@@ -168,9 +168,7 @@ TEST(PropertyGroupTests, loadProperties)
     MockFile file;
     EXPECT_CALL(file, doOpen("/path/to/file", "rb", _))
             .WillOnce(Return(true));
-    EXPECT_CALL(file, doSeek(_, _, _))
-            .WillRepeatedly(Return(true));
-    EXPECT_CALL(file, doTell(_))
+    EXPECT_CALL(file, doSize(_))
             .WillOnce(Return(expectedContentsLen));
 
     EXPECT_CALL(file, doRead(NotNull(), _, _))

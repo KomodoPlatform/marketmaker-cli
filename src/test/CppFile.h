@@ -12,9 +12,7 @@ public:
 
     virtual bool doOpen(const std::string &pathname, const std::string &mode, err_t *errp) = 0;
 
-    virtual bool doSeek(long offset, int whence, err_t *errp) = 0;
-
-    virtual long doTell(err_t *errp) = 0;
+    virtual long doSize(err_t *errp) = 0;
 
     virtual size_t doRead(char *ptr, size_t size, err_t *errp) = 0;
 

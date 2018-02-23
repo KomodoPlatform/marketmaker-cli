@@ -3,9 +3,7 @@
 
 static bool _open(AbstractFile *absFile, const char *pathname, const char *mode, err_t *errp);
 
-static bool _seek(AbstractFile *absFile, long offset, int whence, err_t *errp);
-
-static long _tell(AbstractFile *absFile, err_t *errp);
+static long _size(AbstractFile *absFile, err_t *errp);
 
 static size_t _read(AbstractFile *absFile, void *ptr, size_t size, err_t *errp);
 
@@ -16,8 +14,7 @@ static void _close(AbstractFile *absFile);
 CppFile::CppFile()
 {
     this->open = _open;
-    this->seek = _seek;
-    this->tell = _tell;
+    this->size = _size;
     this->read = _read;
     this->write = _write;
     this->close = _close;
@@ -29,16 +26,10 @@ bool _open(AbstractFile *absFile, const char *pathname, const char *mode, err_t 
     return file->doOpen(pathname, mode, errp);
 }
 
-bool _seek(AbstractFile *absFile, long offset, int whence, err_t *errp)
+long _size(AbstractFile *absFile, err_t *errp)
 {
     auto *file = (CppFile *) absFile;
-    return file->doSeek(offset, whence, errp);
-}
-
-long _tell(AbstractFile *absFile, err_t *errp)
-{
-    auto *file = (CppFile *) absFile;
-    return file->doTell(errp);
+    return file->doSize(errp);
 }
 
 size_t _read(AbstractFile *absFile, void *ptr, size_t size, err_t *errp)

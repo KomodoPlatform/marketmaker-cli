@@ -16,9 +16,10 @@
 #ifndef MARKETMAKER_CLI_FILE_H
 #define MARKETMAKER_CLI_FILE_H
 
-#include <stdbool.h>
-#include <stdio.h>
 #include "basic.h"
+
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,9 +30,7 @@ typedef struct _AbstractFile AbstractFile;
 struct _AbstractFile {
     bool (*open)(AbstractFile *absFile, const char *pathname, const char *mode, err_t *errp);
 
-    bool (*seek)(AbstractFile *absFile, long offset, int whence, err_t *errp);
-
-    long (*tell)(AbstractFile *absFile, err_t *errp);
+    long (*size)(AbstractFile *absFile, err_t *errp);
 
     size_t (*read)(AbstractFile *absFile, void *ptr, size_t size, err_t *errp);
 
