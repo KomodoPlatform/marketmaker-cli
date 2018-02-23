@@ -26,7 +26,7 @@
 
 #define INITIAL_CAPACITY 50
 
-static Property UNDOCUMENTED_API_PROPS[] = {"help", ""};
+static Property UNDOCUMENTED_API_PROPS[] = {{"help", ""}};
 static const PropertyGroup UNDOCUMENTED_API = {
         DIMOF(UNDOCUMENTED_API_PROPS),
         DIMOF(UNDOCUMENTED_API_PROPS),

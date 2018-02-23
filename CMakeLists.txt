@@ -21,10 +21,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang")
     set(CXX_WARNINGS -Werror -Wall -Wno-sign-compare -Wmissing-declarations -Wcast-qual -Wwrite-strings)
-    set(CC_WARNINGS ${CXX_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes)
-    set(CC_OPTIONS -fdata-sections -ffunction-sections)
-    set(LD_OPTIONS -Wl,--gc-sections)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(C_WARNINGS ${CXX_WARNINGS} -Wstrict-prototypes -Wmissing-prototypes)
+    set(GCOV_CC_FLAGS --coverage -g -O0)
+    set(GCOV_LD_FLAGS --coverage)
 endif ()
 
 set(CFLAGS_LIST ${CMAKE_C_FLAGS})
@@ -58,6 +57,7 @@ set(SOURCE_FILES
         )
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_compile_options(${PROJECT_NAME} PUBLIC ${C_WARNINGS})
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
@@ -105,8 +105,8 @@ add_executable(tests
 target_link_libraries(tests gtest gmock_main)
 
 if(ENABLE_GCOV)
-    target_compile_options(tests PUBLIC $<$<COMPILE_LANGUAGE:C>:--coverage -g -O0>)
-    set_target_properties(tests PROPERTIES LINK_FLAGS --coverage)
+    target_compile_options(tests PUBLIC $<$<COMPILE_LANGUAGE:C>:${GCOV_CC_FLAGS}>)
+    set_target_properties(tests PROPERTIES LINK_FLAGS ${GCOV_LD_FLAGS})
 endif(ENABLE_GCOV)
 
 add_test(NAME Tests COMMAND tests)
