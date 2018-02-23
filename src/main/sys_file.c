@@ -84,8 +84,8 @@ size_t sys_read(AbstractFile *absFile, void *ptr, size_t size, err_t *errp)
     *errp = 0;
 
     size_t rc = fread(ptr, 1, size, file->file);
-    if (rc < 0) {
-        *errp = errno;
+    if (rc == 0) {
+        *errp = ferror(file->file) ? errno : 0;
         return 0;
     }
     return rc;
@@ -96,8 +96,11 @@ bool sys_write(AbstractFile *absFile, const void *ptr, size_t size, err_t *errp)
     SysFile *file = (SysFile *) absFile;
     *errp = 0;
 
+    if (size == 0) {
+        return true;
+    }
     size_t rc = fwrite(ptr, 1, size, file->file);
-    if (rc < 0) {
+    if (rc == 0) {
         *errp = errno;
         return false;
     }
