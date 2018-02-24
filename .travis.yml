@@ -14,18 +14,15 @@ install:
   - pip install --user codecov
 
 script:
-  - mkdir build && cd build
-  - cmake -DENABLE_GCOV=ON ..
-  # Wrap the compiled app in sonar qube
+  - cmake -DENABLE_GCOV=ON .
+  # Wrap the compiled app in sonarqube
   - build-wrapper-linux-x86-64 --out-dir bw-output cmake --build .
-  - cd ..
-  - cmake --build .
   - sonar-scanner
   - ./tests
 
 after_success:
   - ccache -s
-  - codecov --root ..
+  - codecov
 
 cache:
   ccache: true
