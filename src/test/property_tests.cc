@@ -14,6 +14,7 @@ using ::testing::NotNull;
 using ::testing::DoAll;
 using ::testing::Return;
 using ::testing::Invoke;
+using ::testing::SetArgPointee;
 using ::testing::SetArrayArgument;
 
 static Property PROPS1[] = {
@@ -167,12 +168,15 @@ TEST(PropertyGroupTests, loadProperties)
 
     MockFile file;
     EXPECT_CALL(file, doOpen("/path/to/file", "rb", _))
-            .WillOnce(Return(true));
+            .WillOnce(DoAll(SetArgPointee<2>(0),
+                            Return(true)));
     EXPECT_CALL(file, doSize(_))
-            .WillOnce(Return(expectedContentsLen));
+            .WillOnce(DoAll(SetArgPointee<0>(0),
+                            Return(expectedContentsLen)));
 
     EXPECT_CALL(file, doRead(NotNull(), _, _))
-            .WillOnce(DoAll(SetArrayArgument<0>(expectedContents, expectedContents + expectedContentsLen),
+            .WillOnce(DoAll(SetArgPointee<2>(0),
+                            SetArrayArgument<0>(expectedContents, expectedContents + expectedContentsLen),
                             Return(expectedContentsLen)));
     EXPECT_CALL(file, doClose())
             .Times(1);
@@ -205,9 +209,11 @@ TEST(PropertyGroupTests, saveProperties)
 
     MockFile file;
     EXPECT_CALL(file, doOpen("/path/to/file", "w+b", _))
-            .WillOnce(Return(true));
+            .WillOnce(DoAll(SetArgPointee<2>(0),
+                            Return(true)));
     EXPECT_CALL(file, doWrite(NotNull(), _, _))
-            .WillRepeatedly(Invoke(&written_lines, &WrittenLines::doWrite));
+            .WillRepeatedly(DoAll(SetArgPointee<2>(0),
+                                  Invoke(&written_lines, &WrittenLines::doWrite)));
     EXPECT_CALL(file, doClose())
             .Times(1);
     err_t err;
