@@ -1,16 +1,30 @@
 language: c
 
+addons:
+  sonarcloud:
+    organization: eliezio-github
+
 compiler:
   - gcc
+
+before_install:
+  - ccache -z
 
 install:
   - pip install --user codecov
 
 script:
+  - sonar-scanner
   - mkdir build && cd build
   - cmake -DENABLE_GCOV=ON ..
   - cmake --build .
   - ./tests
 
 after_success:
+  - ccache -s
   - codecov --root ..
+
+cache:
+  ccache: true
+  directories:
+    - $HOME/.sonar
