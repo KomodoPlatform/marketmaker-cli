@@ -176,7 +176,7 @@ TEST(PropertyGroupTests, loadProperties)
                             Return(expectedContentsLen)));
     EXPECT_CALL(file, doClose())
             .Times(1);
-    err_t err = 0;
+    err_t err;
     PropertyGroup *group = load_properties(&file, "/path/to/file", &err);
     ASSERT_EQ(0, err);
     ASSERT_NE(nullptr, group);
@@ -210,7 +210,7 @@ TEST(PropertyGroupTests, saveProperties)
             .WillRepeatedly(Invoke(&written_lines, &WrittenLines::doWrite));
     EXPECT_CALL(file, doClose())
             .Times(1);
-    err_t err = 0;
+    err_t err;
     bool status = save_properties(&GROUP1, &file, "/path/to/file", &err);
     ASSERT_TRUE(status);
     ASSERT_EQ(std::string(expectedContents), written_lines.str);

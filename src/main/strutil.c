@@ -22,9 +22,6 @@ char *strtrim(char *str)
 {
     char *s, *p;
 
-    if (str == NULL) {
-        return NULL;
-    }
     for (s = str; isspace ((unsigned char) *s); s++) {
     }
     p = s + strlen(s);
