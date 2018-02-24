@@ -16,6 +16,8 @@ set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(PACKAGE_RELEASE "1")    # fixed
 message(STATUS "Version set to: " ${VERSION})
 
+configure_file(sonar-project.properties.in sonar-project.properties @ONLY)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 

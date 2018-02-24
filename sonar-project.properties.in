@@ -1,0 +1,7 @@
+sonar.projectKey=mmcli
+sonar.projectName=MarketMaker CLI
+sonar.projectVersion=@VERSION@
+sonar.sources=@CMAKE_SOURCE_DIR@/src/main
+sonar.sourceEncoding=UTF-8
+
+sonar.cfamily.build-wrapper-output=@CMAKE_BINARY_DIR@/bw-output
