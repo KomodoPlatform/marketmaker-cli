@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include "path.h"
+#include "safe_alloc.h"
 
 char *home_path(const char *path)
 {
@@ -29,7 +30,8 @@ char *home_path(const char *path)
     if ((homedir = getenv("HOME")) == NULL) {
         homedir = getpwuid(getuid())->pw_dir;
     }
-    char *dest = malloc(strlen(homedir) + 1 + strlen(path) + 1);
-    sprintf(dest, "%s/%s", homedir, path);
+    size_t dest_len = strlen(homedir) + 1 + strlen(path) + 1;
+    char *dest = safe_malloc(dest_len);
+    snprintf(dest, dest_len, "%s/%s", homedir, path);
     return dest;
 }
