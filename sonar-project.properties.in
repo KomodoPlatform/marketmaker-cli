@@ -4,5 +4,10 @@ sonar.projectVersion=@VERSION@
 sonar.sources=@CMAKE_SOURCE_DIR@/src/main
 sonar.sourceEncoding=UTF-8
 
+sonar.links.homepage=https://github.com/eliezio/marketmaker-cli
+sonar.links.ci=https://travis-ci.org/eliezio/marketmaker-cli
+sonar.links.scm=https://github.com/eliezio/marketmaker-cli
+sonar.links.issue=https://github.com/eliezio/marketmaker-cli/issues
+
 sonar.cfamily.build-wrapper-output=@CMAKE_BINARY_DIR@/bw-output
 sonar.cfamily.gcov.reportsPath=@CMAKE_BINARY_DIR@
