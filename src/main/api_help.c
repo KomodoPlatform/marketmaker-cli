@@ -110,9 +110,12 @@ char *strip_params(char *src)
     char *dest = src;   // in-place result
     char *d = dest;     // result cursor
     char *next_parm = NULL;
-    for (char *s = src; s != NULL; s = next_parm) {
+    bool has_next = true;
+    for (char *s = src; has_next; s = next_parm) {
         if ((next_parm = strchr(s, ',')) != NULL) {
             *next_parm++ = '\0';
+        } else {
+            has_next = false;
         }
         s = strtrim(s);
         size_t slen = strlen(s);
