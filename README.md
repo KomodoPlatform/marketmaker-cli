@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/github/license/eliezio/marketmaker-cli.svg)]()
 [![CI Build](https://travis-ci.org/eliezio/marketmaker-cli.svg?branch=master)]()
 [![codecov](https://codecov.io/gh/eliezio/marketmaker-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/eliezio/marketmaker-cli)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=mmcli%3Amaster&metric=alert_status)](https://sonarcloud.io/dashboard?id=mmcli%3Amaster)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=alert_status)](https://sonarcloud.io/dashboard?id=mmcli)
 
 This application is a CLI front-end to `marketmaker` API (barterDEX).
 It builds a JSON requests based on given arguments and display the results returned by the `marketmaker` (MM) back-end.
