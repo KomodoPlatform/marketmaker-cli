@@ -14,6 +14,7 @@
  ******************************************************************************/
 
 #include "safe_alloc.h"
+#include "strutil.h"
 
 #include <stdlib.h>
 #include <string.h>

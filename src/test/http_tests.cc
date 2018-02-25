@@ -19,6 +19,7 @@
 
 #include "http.h"
 #include "MockSocket.h"
+#include "strutil.h"
 
 using ::testing::_;
 using ::testing::AtLeast;
