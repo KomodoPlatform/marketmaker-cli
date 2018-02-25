@@ -159,7 +159,7 @@ TEST(ApiHelpTests, fetchApi)
                                             "Access-Control-Allow-Methods: GET, POST\r\n"
                                             "Cache-Control :  no-cache, no-store, must-revalidate\r\n"
                                             "Content-Length :       323\r\n\r\n")));
-    const char *expectedReponseBody = _strdup(R"({"result":" available localhost RPC commands:
+    const char *expectedReponseBody = R"({"result":" available localhost RPC commands:
  setprice(base, rel, price, broadcast=1)
 autoprice(base, rel, fixed, minprice, maxprice, margin, refbase, refrel, factor, offset)*
 goal(coin=*, val=<autocalc>)
@@ -168,9 +168,9 @@ enable(coin)
 disable(coin)
 jpg(srcfile, destfile, power2=7, password, data=, required, ind=0)
 "}
-)");
+)";
     EXPECT_CALL(sock, doReadBinary(323, _, _, _))
-            .WillOnce(Return((void *) expectedReponseBody));
+            .WillOnce(Return((void *) _strdup(expectedReponseBody)));
     EXPECT_CALL(sock, doDisconnect())
             .Times(1);
     err_t err;
