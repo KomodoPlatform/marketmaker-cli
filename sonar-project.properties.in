@@ -5,3 +5,4 @@ sonar.sources=@CMAKE_SOURCE_DIR@/src/main
 sonar.sourceEncoding=UTF-8
 
 sonar.cfamily.build-wrapper-output=@CMAKE_BINARY_DIR@/bw-output
+sonar.cfamily.gcov.reportsPath=@CMAKE_BINARY_DIR@
