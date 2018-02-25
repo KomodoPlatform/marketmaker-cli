@@ -23,7 +23,9 @@
 extern "C" {
 #endif
 
+#ifndef _WIN32
 typedef int SOCKET;
+#endif
 
 typedef struct {
     char    data[2048];

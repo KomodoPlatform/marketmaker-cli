@@ -126,6 +126,14 @@ int main(int argc, char *argv[])
 
 void init_globals()
 {
+#ifdef _WIN32
+    WSADATA wsaData;
+    int rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (rc != 0) {
+        printf("WSAStartup failed: %d\n", rc);
+        exit(EXIT_FAILURE);
+    }
+#endif
     apiPath = home_path(API_PATH);
     configPath = home_path(CONFIG_PATH);
 }
@@ -209,7 +217,7 @@ void print_help_api(FILE *out, const PropertyGroup *api)
     size_t max_key_len = longest_key_len(api) + 2;
     fprintf(out, "\n%-*s  %s\n%.*s  %s\n", (int) max_key_len, "Method", "Parameters",
             (int) max_key_len, dashes, dashes);
-    for (int i = 0; i < api->size; i++) {
+    for (size_t i = 0; i < api->size; i++) {
         Property *prop = &api->properties[i];
         size_t klen = strlen(prop->key);
         fputs(prop->key, out);

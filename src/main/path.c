@@ -13,9 +13,7 @@
  *                                                                            *
  ******************************************************************************/
 
-#include <unistd.h>
 #include <sys/types.h>
-#include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -28,7 +26,7 @@ char *home_path(const char *path)
     const char *homedir;
 
     if ((homedir = getenv("HOME")) == NULL) {
-        homedir = getpwuid(getuid())->pw_dir;
+        homedir = ".";
     }
     size_t dest_len = strlen(homedir) + 1 + strlen(path) + 1;
     char *dest = safe_malloc(dest_len);

@@ -30,7 +30,7 @@ void *safe_malloc(size_t size)
 
 char *safe_strdup(const char *str)
 {
-    char *copy = strdup(str);
+    char *copy = _strdup(str);
     assert_not_null(copy);
     return copy;
 }

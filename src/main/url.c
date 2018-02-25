@@ -20,8 +20,12 @@
 #include <limits.h>
 #include <errno.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <netdb.h>
 #include <arpa/inet.h>
+
+#define INADDR_NONE    ((in_addr_t) -1)
+#endif
 
 #define IS_VALID_PORT(p)    (((p) > 0) && ((p) <= UINT16_MAX))
 
@@ -59,7 +63,7 @@ bool parse_url(const char *strUrl, URL *url, err_t *errp)
 bool resolve_hostname(const char *name, struct in_addr *addr, err_t *errp)
 {
     *errp = 0;
-    if ((addr->s_addr = inet_addr(name)) == (in_addr_t) -1) {
+    if ((addr->s_addr = inet_addr(name)) == INADDR_NONE) {
         struct hostent *hep;
 
         if ((hep = gethostbyname(name)) != NULL) {

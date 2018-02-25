@@ -37,7 +37,7 @@ TEST(HttpTests, postBalanceMethod)
             .Times(AtLeast(1))
             .WillRepeatedly(Return(true));
     EXPECT_CALL(sock, doReadText("\r\n\r\n", _, _))
-            .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
+            .WillOnce(Return(_strdup("HTTP/1.1 200 OK\r\n"
                     "Access-Control-Allow-Origin: *\r\n"
                     "Access-Control-Allow-Credentials: true\r\n"
                     "Access-Control-Allow-Methods: GET, POST\r\n"
@@ -91,7 +91,7 @@ TEST(HttpTests, missingContentLength)
             .Times(AtLeast(1))
             .WillRepeatedly(Return(true));
     EXPECT_CALL(sock, doReadText("\r\n\r\n", _, _))
-            .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
+            .WillOnce(Return(_strdup("HTTP/1.1 200 OK\r\n"
                                             "Access-Control-Allow-Origin: *\r\n"
                                             "Access-Control-Allow-Credentials: true\r\n"
                                             "Access-Control-Allow-Methods: GET, POST\r\n"

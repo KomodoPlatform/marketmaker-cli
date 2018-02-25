@@ -8,7 +8,7 @@
 
 static inline std::ostream& operator<<(std::ostream &os, const PropertyGroup &group) {
     os << "PropertyGroup[" << group.size << "] {";
-    for (int i = 0; i < group.size; i++) {
+    for (size_t i = 0; i < group.size; i++) {
         if (i > 0)
             os << ", ";
         Property &prop = group.properties[i];
@@ -26,7 +26,7 @@ bool operator==(const PropertyGroup &lhs, const PropertyGroup &rhs) {
     if (lhs.size != rhs.size) {
         return false;
     }
-    for (int i = 0; i < lhs.size; i++) {
+    for (size_t i = 0; i < lhs.size; i++) {
         bool cmp = lhs.properties[i] == rhs.properties[i];
         if (! cmp) {
             return false;

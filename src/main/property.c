@@ -101,7 +101,7 @@ bool save_properties(const PropertyGroup *group, AbstractFile *absFile, const ch
     if (!absFile->open(absFile, path, "w+b", err)) {
         return false;
     }
-    for (int i = 0; i < group->size; i++) {
+    for (size_t i = 0; i < group->size; i++) {
         snprintf(line, sizeof(line), "%s=%s\n", group->properties[i].key, group->properties[i].value);
         absFile->write(absFile, line, strlen(line), err);
     }
@@ -128,7 +128,7 @@ PropertyGroup *realloc_properties(PropertyGroup *group, size_t newCapacity)
 
 const char *find_property(const PropertyGroup *group, const char *key)
 {
-    for (int i = 0; i < group->size; i++) {
+    for (size_t i = 0; i < group->size; i++) {
         const Property *prop = &group->properties[i];
         if (strequal(prop->key, key)) {
             return prop->value;
@@ -139,7 +139,7 @@ const char *find_property(const PropertyGroup *group, const char *key)
 
 const char *find_property_ignore_case(const PropertyGroup *group, const char *key)
 {
-    for (int i = 0; i < group->size; i++) {
+    for (size_t i = 0; i < group->size; i++) {
         const Property *prop = &group->properties[i];
         if (strequalIgnoreCase(prop->key, key)) {
             return prop->value;
@@ -164,7 +164,7 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
 
 PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, err_t *errp)
 {
-    for (int i = 0; i < group->size; i++) {
+    for (size_t i = 0; i < group->size; i++) {
         Property *prop = &group->properties[i];
         if (strequal(prop->key, key)) {
             prop->value = value;
@@ -177,7 +177,7 @@ PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *v
 
 PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, err_t *errp)
 {
-    for (int i = 0; i < sourceGroup->size; i++) {
+    for (size_t i = 0; i < sourceGroup->size; i++) {
         const Property *prop = &sourceGroup->properties[i];
         destGroup = put_property(destGroup, prop->key, prop->value, errp);
         if (destGroup == NULL) {
@@ -190,7 +190,7 @@ PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup 
 size_t longest_key_len(const PropertyGroup *group)
 {
     size_t the_key_len = 0;
-    for (int i = 0; i < group->size; i++) {
+    for (size_t i = 0; i < group->size; i++) {
         Property *prop = &group->properties[i];
         size_t klen = strlen(prop->key);
         if (klen > the_key_len) {

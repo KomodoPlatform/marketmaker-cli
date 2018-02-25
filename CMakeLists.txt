@@ -28,6 +28,11 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL
     set(GCOV_LD_FLAGS --coverage)
 endif ()
 
+if(WIN32)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
+    add_definitions(-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+endif()
+
 set(CFLAGS_LIST ${CMAKE_C_FLAGS})
 separate_arguments(CFLAGS_LIST)
 
@@ -60,6 +65,9 @@ set(SOURCE_FILES
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_compile_options(${PROJECT_NAME} PUBLIC ${C_WARNINGS})
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
+endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
@@ -103,8 +111,11 @@ add_executable(tests
         src/test/CppFile.cc
         src/test/CppFile.h
         src/test/MockFile.h
-        )
+        src/test/main.cc)
 target_link_libraries(tests gtest gmock_main)
+if(WIN32)
+    target_link_libraries(tests wsock32 ws2_32)
+endif()
 
 if(ENABLE_GCOV)
     target_compile_options(tests PUBLIC $<$<COMPILE_LANGUAGE:C>:${GCOV_CC_FLAGS}>)

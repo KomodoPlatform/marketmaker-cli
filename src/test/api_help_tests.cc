@@ -152,13 +152,13 @@ TEST(ApiHelpTests, fetchApi)
             .Times(AtLeast(1))
             .WillRepeatedly(Return(true));
     EXPECT_CALL(sock, doReadText("\r\n\r\n", _, _))
-            .WillOnce(Return(strdup("HTTP/1.1 200 OK\r\n"
+            .WillOnce(Return(_strdup("HTTP/1.1 200 OK\r\n"
                                             "Access-Control-Allow-Origin: *\r\n"
                                             "Access-Control-Allow-Credentials: true\r\n"
                                             "Access-Control-Allow-Methods: GET, POST\r\n"
                                             "Cache-Control :  no-cache, no-store, must-revalidate\r\n"
                                             "Content-Length :       323\r\n\r\n")));
-    const char *expectedReponseBody = strdup(R"({"result":" available localhost RPC commands:
+    const char *expectedReponseBody = _strdup(R"({"result":" available localhost RPC commands:
  setprice(base, rel, price, broadcast=1)
 autoprice(base, rel, fixed, minprice, maxprice, margin, refbase, refrel, factor, offset)*
 goal(coin=*, val=<autocalc>)
@@ -177,7 +177,6 @@ jpg(srcfile, destfile, power2=7, password, data=, required, ind=0)
     parse_url("http://localhost:7783", &url, &err);
     ASSERT_EQ(0, err);
 
-    size_t responseBodyLen;
     PropertyGroup *api = fetch_api((AbstractSocket *) &sock, &url, &err);
     ASSERT_EQ(0, err);
     ASSERT_NE(nullptr, api);

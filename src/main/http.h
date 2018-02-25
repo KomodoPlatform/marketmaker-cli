@@ -16,7 +16,11 @@
 #include "basic.h"
 
 #include <stdbool.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 #ifndef MARKETMAKER_CLI_HTTP_H
 #define MARKETMAKER_CLI_HTTP_H

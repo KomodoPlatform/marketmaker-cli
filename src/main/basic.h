@@ -20,4 +20,9 @@ typedef int err_t;
 
 #define DIMOF(a)        (sizeof(a) / sizeof((a)[0]))
 
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #endif //MARKETMAKER_CLI_BASIC_H

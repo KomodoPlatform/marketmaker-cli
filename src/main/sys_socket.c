@@ -16,16 +16,25 @@
 #include "sys_socket.h"
 
 #include <string.h>
-#include <errno.h>
 #include <stdlib.h>
-#include <sys/fcntl.h>
-#include <unistd.h>
 
 #ifndef min
 #define min(a, b)   ((a) < (b) ? (a) : (b))
 #endif
 
+#ifdef _WIN32
+typedef int socklen_t;
+
+#define SOCK_ERROR()    WSAGetLastError()
+#else
+#include <errno.h>
+#include <sys/fcntl.h>
+#include <unistd.h>
+
 #define INVALID_SOCKET  ((SOCKET) - 1)
+#define SOCK_ERROR()    errno
+#define closesocket(s)  close(s)
+#endif
 
 typedef enum {
     SEL_READ,
@@ -35,15 +44,16 @@ typedef enum {
 
 static bool socket_get_error(SOCKET sockfd, err_t *errp);
 
-static bool socket_select(int sockfd, SelectSet setId, int tmout_ms, err_t *errp);
+static bool socket_select(SOCKET sockfd, SelectSet setId, int tmout_ms, err_t *errp);
 
 static size_t socket_read(SysSocket *sock, void *buf, size_t nbyte, int tmout_ms, err_t *errp);
+
+static bool socket_set_nonblock(SOCKET sockfd, err_t *errp);
 
 static bool socket_connect(AbstractSocket *absSocket, const URL *url, int tmout_ms, err_t *errp)
 {
     SysSocket *sock = (SysSocket *) absSocket;
     struct sockaddr_in sin;
-    int flags;
 
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -51,21 +61,18 @@ static bool socket_connect(AbstractSocket *absSocket, const URL *url, int tmout_
     sin.sin_port = htons(url->port);
     *errp = 0;
     if ((sock->sockfd = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        *errp = errno;
-    } else if (((flags = fcntl(sock->sockfd, F_GETFL, 0)) < 0) ||
-               (fcntl(sock->sockfd, F_SETFL, flags | O_NONBLOCK, 0) < 0)) {
-        *errp = errno;
-    } else if (connect(sock->sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-        if ((errno == EINPROGRESS) || (errno == EAGAIN)) {
-            socket_select(sock->sockfd, SEL_WRITE, tmout_ms, errp);
-        } else {
-            *errp = errno;
+        *errp = SOCK_ERROR();
+    } else if (socket_set_nonblock(sock->sockfd, errp)) {
+        if (connect(sock->sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+            if ((SOCK_ERROR() == EINPROGRESS) || (SOCK_ERROR() == EAGAIN)) {
+                socket_select(sock->sockfd, SEL_WRITE, tmout_ms, errp);
+            } else {
+                *errp = SOCK_ERROR();
+            }
         }
-    } else {
-        *errp = 0;
     }
     if ((*errp != 0) && (sock->sockfd != INVALID_SOCKET)) {
-        close(sock->sockfd);
+        closesocket(sock->sockfd);
         sock->sockfd = INVALID_SOCKET;
     }
     return *errp == 0;
@@ -76,7 +83,7 @@ static void socket_disconnect(AbstractSocket *absSocket)
     SysSocket *sock = (SysSocket *) absSocket;
 
     if (sock->sockfd != INVALID_SOCKET) {
-        close(sock->sockfd);
+        closesocket(sock->sockfd);
     }
 }
 
@@ -86,9 +93,9 @@ static bool socket_write(AbstractSocket *absSocket, const void *data, size_t len
     *errp = 0;
     const char *p = data;
     for (size_t ofs = 0; ofs < len;) {
-        ssize_t n = write(sock->sockfd, &p[ofs], len - ofs);
+        ssize_t n = send(sock->sockfd, &p[ofs], len - ofs, 0);
         if (n <= 0) {
-            *errp = errno;
+            *errp = SOCK_ERROR();
             return false;
         }
         ofs += n;
@@ -186,7 +193,7 @@ void sys_socket_init(SysSocket *sock)
     sock->readBuffer.position = 0;
 }
 
-bool socket_select(int sockfd, SelectSet setId, int tmout_ms, err_t *errp)
+bool socket_select(SOCKET sockfd, SelectSet setId, int tmout_ms, err_t *errp)
 {
     fd_set fdset;
     fd_set *read_fdset = NULL;
@@ -220,7 +227,7 @@ bool socket_select(int sockfd, SelectSet setId, int tmout_ms, err_t *errp)
             break;
 
         default:
-            *errp = errno;
+            *errp = SOCK_ERROR();
             break;
     }
     return *errp == 0;
@@ -230,18 +237,34 @@ bool socket_get_error(SOCKET sockfd, err_t *errp)
 {
     *errp = 0;
     socklen_t len = sizeof(*errp);
-    getsockopt(sockfd, SOL_SOCKET, SO_ERROR, errp, &len);
+    getsockopt(sockfd, SOL_SOCKET, SO_ERROR, (char *) errp, &len);
     return *errp == 0;
 }
 
 size_t socket_read(SysSocket *sock, void *buf, size_t nbyte, int tmout_ms, err_t *errp)
 {
     if (socket_select(sock->sockfd, SEL_READ, tmout_ms, errp)) {
-        ssize_t rc = read(sock->sockfd, buf, nbyte);
+        ssize_t rc = recv(sock->sockfd, buf, nbyte, 0);
         if (rc > 0) {
             return (size_t) rc;
         }
-        *errp = (rc == 0) ? ENODATA : errno;
+        *errp = (rc == 0) ? -1 : SOCK_ERROR();
     }
     return 0;
+}
+
+bool socket_set_nonblock(SOCKET sockfd, err_t *errp)
+{
+    *errp = 0;
+#ifndef WIN32
+    if (fcntl(sockfd, F_SETFL, O_NONBLOCK, 0)) {
+        *errp = SOCK_ERROR();
+    }
+#else
+    u_long ioctlsocket_ret = 1;
+    if (ioctlsocket(sockfd, FIONBIO, &ioctlsocket_ret) < 0) {
+        *errp = SOCK_ERROR();
+    }
+#endif
+    return *errp == 0;
 }

@@ -20,7 +20,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
 #include <netinet/in.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
