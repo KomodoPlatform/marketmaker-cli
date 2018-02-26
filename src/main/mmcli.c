@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 
 #include "property.h"
 #include "strutil.h"
@@ -40,10 +39,6 @@ static const char *apiPath;
 static void print_help(const char *programPath, const PropertyGroup *api);
 
 static void print_syserr(const char *context, err_t err);
-
-static void print_msg(const char *fmt, ...);
-
-static void print_err(const char *fmt, ...);
 
 static PropertyGroup *handle_config(const char *method, const char *programPath, int argc, char *argv[], err_t *errp);
 
@@ -82,7 +77,8 @@ int main(int argc, char *argv[])
     URL url;
     const char *strUrl = find_property(config, KEY_URL);
     if (!parse_url(strUrl, &url, &err)) {
-        print_err("Invalid URL: %s", strUrl);
+        fprintf(stderr, "*** Invalid URL: %s\n", strUrl);
+        return EXIT_FAILURE;
     }
 
     const PropertyGroup *api = handle_api(method, programPath, &url, argc, &err);
@@ -92,19 +88,19 @@ int main(int argc, char *argv[])
 
     const char *paramNames = find_property(api, method);
     if (paramNames == NULL) {
-        print_err("Unknown method: %s", method);
+        fprintf(stderr, "*** Unknown method: %s\n", method);
         return EXIT_FAILURE;
     }
 
     if ((argc == 1) && (strequal(argv[0], "-h") || strequal(argv[0], "--help"))) {
-        print_msg("Parameters for method '%s': %s", method, paramNames);
+        printf("Parameters for method '%s': %s\n", method, paramNames);
         return EXIT_SUCCESS;
     }
 
     const char *userpass = find_property(config, KEY_USERPASS);
     PropertyGroup *paramList = build_param_list(method, userpass, paramNames, argc, argv, &err);
     if (err != 0) {
-        print_err("Wrong number of arguments given: %d\nParameters: %s", argc, paramNames);
+        fprintf(stderr, "*** Wrong number of arguments given: %d\nParameters: %s\n", argc, paramNames);
         return EXIT_FAILURE;
     }
     char *jsonRequest = build_json_request(paramList, &err);
@@ -171,27 +167,6 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
     return paramList;
 }
 
-void print_msg(const char *fmt, ...)
-{
-    va_list ap;
-
-    va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap);
-    fputc('\n', stdout);
-    va_end(ap);
-}
-
-void print_err(const char *fmt, ...)
-{
-    va_list ap;
-
-    va_start(ap, fmt);
-    fputs("***\n", stderr);
-    vfprintf(stderr, fmt, ap);
-    fputc('\n', stderr);
-    va_end(ap);
-}
-
 void print_syserr(const char *context, err_t err)
 {
     fprintf(stderr, "***Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
@@ -255,7 +230,7 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
             print_syserr("loading config file", *errp);
             return NULL;
         } else {
-            print_err("You must configure URL and USERPASS first! Use the _config to provide these values.");
+            fprintf(stderr, "*** You must configure URL and USERPASS first! Use the _config to provide these values.\n");
             return NULL;
         }
     }

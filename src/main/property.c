@@ -53,7 +53,6 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
         }
     }
     if (*errp == 0) {
-        // TODO: copy is leaking!
         return realloc_properties(group, group->size);
     }
     free(copy);
