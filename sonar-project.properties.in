@@ -11,4 +11,4 @@ sonar.links.issue=https://github.com/eliezio/marketmaker-cli/issues
 
 sonar.cfamily.build-wrapper-output=@CMAKE_BINARY_DIR@/bw-output
 sonar.cfamily.gcov.reportsPath=@CMAKE_BINARY_DIR@
-sonar.cfamily.cppunit.reportsPath=@CMAKE_BINARY_DIR@/test_detail.xml
+sonar.cfamily.cppunit.reportsPath=@CMAKE_BINARY_DIR@/test_reports
