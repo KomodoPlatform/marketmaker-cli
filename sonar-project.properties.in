@@ -11,4 +11,4 @@ sonar.links.issue=https://github.com/eliezio/marketmaker-cli/issues
 
 sonar.cfamily.build-wrapper-output=@CMAKE_BINARY_DIR@/bw-output
 sonar.cfamily.gcov.reportsPath=@CMAKE_BINARY_DIR@
-sonar.coverage.exclusions=@CMAKE_SOURCE_DIR@/src/main/mmcli.c,@CMAKE_SOURCE_DIR@/src/main/sys_*.c
+sonar.coverage.exclusions=**/mmcli.c,**/sys_*.c
