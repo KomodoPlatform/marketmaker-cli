@@ -135,12 +135,11 @@ TEST(ApiHelpTests, parseCurrentHelp) {
             { "instantdex_claim", "" },
             { "jpg", "srcfile,destfile,power2,password,data,required,ind" },
     };
-    err_t err;
     PropertyGroup expectedApi = {
             DIMOF(props), DIMOF(props), props
     };
-    PropertyGroup *api = parse_api_help(currentHelp, &err);
-    ASSERT_EQ(0, err);
+    PropertyGroup *api = parse_api_help(currentHelp);
+    ASSERT_NE(nullptr, api);
     ASSERT_EQ(expectedApi, *api);
 }
 

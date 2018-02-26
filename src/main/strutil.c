@@ -23,6 +23,7 @@ char *strtrim(char *str)
     char *s, *p;
 
     for (s = str; isspace ((unsigned char) *s); s++) {
+        // just advance s
     }
     p = s + strlen(s);
     while ((p > s) && isspace ((unsigned char) p[-1])) {

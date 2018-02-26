@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-PropertyGroup *parse_api_help(const char *str, err_t *errp);
+PropertyGroup *parse_api_help(const char *str);
 
 PropertyGroup *fetch_api(AbstractSocket *absSocket, const URL *url, err_t *errp);
 

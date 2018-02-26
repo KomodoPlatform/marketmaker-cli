@@ -145,8 +145,8 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
     char *names = safe_strdup(paramNames);
     PropertyGroup *paramList = realloc_properties(NULL, 10);
     paramList->size = 0;
-    add_property(paramList, "method", method, errp);
-    add_property(paramList, KEY_USERPASS, userpass, errp);
+    add_property(paramList, "method", method);
+    add_property(paramList, KEY_USERPASS, userpass);
     char *next_param = NULL;
     for (char *s = names; s != NULL; s = next_param) {
         if ((next_param = strchr(s, ',')) != NULL) {
@@ -160,17 +160,11 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
             break;
         }
         --argc;
-        paramList = add_property(paramList, s, *argv++, errp);
-        if (*errp != 0) {
-            break;
-        }
+        paramList = add_property(paramList, s, *argv++);
     }
     // check if user provided extra parameters
-    if ((*errp == 0) && (argc > 0)) {
+    if (argc > 0) {
         *errp = EINVAL;
-    }
-
-    if (*errp != 0) {
         free(paramList);
         paramList = NULL;
     }

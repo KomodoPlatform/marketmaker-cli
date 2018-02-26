@@ -49,10 +49,7 @@ PropertyGroup *parse_properties(const char *str, char separator, int options, er
                 break;
             }
             *sep++ = '\0';
-            group = add_property(group, strtrim(s), strtrim(sep), errp);
-            if (*errp != 0) {
-                break;
-            }
+            group = add_property(group, strtrim(s), strtrim(sep));
         }
     }
     if (*errp == 0) {
@@ -148,9 +145,8 @@ const char *find_property_ignore_case(const PropertyGroup *group, const char *ke
     return NULL;
 }
 
-PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value, err_t *errp)
+PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *value)
 {
-    *errp = 0;
     if (group->size == group->capacity) {
         group = realloc_properties(group, group->capacity * 2);
     }
@@ -162,7 +158,7 @@ PropertyGroup *add_property(PropertyGroup *group, const char *key, const char *v
     return group;
 }
 
-PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value, err_t *errp)
+PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *value)
 {
     for (size_t i = 0; i < group->size; i++) {
         Property *prop = &group->properties[i];
@@ -172,14 +168,14 @@ PropertyGroup *put_property(PropertyGroup *group, const char *key, const char *v
         }
     }
 
-    return add_property(group, key, value, errp);
+    return add_property(group, key, value);
 }
 
-PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup, err_t *errp)
+PropertyGroup *put_all_properties(PropertyGroup *destGroup, const PropertyGroup *sourceGroup)
 {
     for (size_t i = 0; i < sourceGroup->size; i++) {
         const Property *prop = &sourceGroup->properties[i];
-        destGroup = put_property(destGroup, prop->key, prop->value, errp);
+        destGroup = put_property(destGroup, prop->key, prop->value);
         if (destGroup == NULL) {
             break;
         }

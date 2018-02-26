@@ -35,9 +35,8 @@ static const PropertyGroup UNDOCUMENTED_API = {
 
 static char *strip_params(char *src);
 
-PropertyGroup *parse_api_help(const char *str, err_t *errp)
+PropertyGroup *parse_api_help(const char *str)
 {
-    *errp = 0;
     char *copy = safe_strdup(str);
     PropertyGroup *group = alloc_properties(INITIAL_CAPACITY);
     group->size = 0;
@@ -65,19 +64,13 @@ PropertyGroup *parse_api_help(const char *str, err_t *errp)
             *sep++ = '\0';
             const char *key = strtrim(s);
             if (*key != '\0') {
-                group = add_property(group, key, strip_params(strtrim(sep)), errp);
-                if (*errp != 0) {
-                    break;
-                }
+                group = add_property(group, key, strip_params(strtrim(sep)));
             }
         }
         s = p;
     } while (s != NULL);
-    if (*errp == 0) {
-        return realloc_properties(group, group->size);
-    }
-    free(copy);
-    return NULL;
+
+    return realloc_properties(group, group->size);
 }
 
 PropertyGroup *fetch_api(AbstractSocket *absSocket, const URL *url, err_t *errp)
@@ -97,9 +90,9 @@ PropertyGroup *fetch_api(AbstractSocket *absSocket, const URL *url, err_t *errp)
     if (*errp != 0) {
         return NULL;
     }
-    PropertyGroup *api = parse_api_help(response, errp);
+    PropertyGroup *api = parse_api_help(response);
     if (api != NULL) {
-        api = put_all_properties(api, &UNDOCUMENTED_API, errp);
+        api = put_all_properties(api, &UNDOCUMENTED_API);
     }
     free(response);
     return api;

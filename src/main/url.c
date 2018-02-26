@@ -60,15 +60,18 @@ bool parse_url(const char *strUrl, URL *url, err_t *errp)
 
 bool resolve_hostname(const char *name, struct in_addr *addr, err_t *errp)
 {
-    *errp = 0;
-    if ((addr->s_addr = inet_addr(name)) == INADDR_NONE) {
-        struct hostent *hep;
+    struct addrinfo hints;
+    struct addrinfo *result = NULL;
 
-        if ((hep = gethostbyname(name)) != NULL) {
-            memcpy(&addr->s_addr, hep->h_addr, sizeof(addr->s_addr));
-        } else {
-            *errp = 500 + h_errno;
-        }
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    *errp = getaddrinfo(name, "http", &hints, &result);
+    if (*errp == 0) {
+        *addr = ((struct sockaddr_in *) result->ai_addr)->sin_addr;
+        freeaddrinfo(result);
     }
 
     return (*errp == 0);

@@ -70,18 +70,13 @@ TEST(PropertyGroupTests, putAllAndSort)
             DIMOF(props1),
             props1
     };
-    err_t err;
     PropertyGroup *group2 = realloc_properties(nullptr, 10);
-    group2 = add_property(group2, "help", "", &err);
-    ASSERT_EQ(0, err);
-    group2 = add_property(group2, "goal", "coin", &err);
-    ASSERT_EQ(0, err);
-    group2 = add_property(group2, "myprice", "base,coin,rel", &err);
-    ASSERT_EQ(0, err);
+    group2 = add_property(group2, "help", "");
+    group2 = add_property(group2, "goal", "coin");
+    group2 = add_property(group2, "myprice", "base,coin,rel");
     ASSERT_EQ(3, group2->size);
 
-    group2 = put_all_properties(group2, &group1, &err);
-    ASSERT_EQ(0, err);
+    group2 = put_all_properties(group2, &group1);
     ASSERT_EQ(6, group2->size);
     ASSERT_NE(nullptr, group2);
 

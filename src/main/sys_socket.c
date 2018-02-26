@@ -62,13 +62,12 @@ static bool socket_connect(AbstractSocket *absSocket, const URL *url, int tmout_
     *errp = 0;
     if ((sock->sockfd = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         *errp = SOCK_ERROR();
-    } else if (socket_set_nonblock(sock->sockfd, errp)) {
-        if (connect(sock->sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-            if ((SOCK_ERROR() == EINPROGRESS) || (SOCK_ERROR() == EAGAIN)) {
-                socket_select(sock->sockfd, SEL_WRITE, tmout_ms, errp);
-            } else {
-                *errp = SOCK_ERROR();
-            }
+    } else if (socket_set_nonblock(sock->sockfd, errp) &&
+               (connect(sock->sockfd, (struct sockaddr *) &sin, sizeof(sin)) < 0)) {
+        if ((SOCK_ERROR() == EINPROGRESS) || (SOCK_ERROR() == EAGAIN)) {
+            socket_select(sock->sockfd, SEL_WRITE, tmout_ms, errp);
+        } else {
+            *errp = SOCK_ERROR();
         }
     }
     if ((*errp != 0) && (sock->sockfd != INVALID_SOCKET)) {
@@ -213,6 +212,8 @@ bool socket_select(SOCKET sockfd, SelectSet setId, int tmout_ms, err_t *errp)
             break;
         case SEL_ERROR:
             error_fdset = &fdset;
+            break;
+        default:
             break;
     }
     tv.tv_sec = tmout_ms / 1000;
