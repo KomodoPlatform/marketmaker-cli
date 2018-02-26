@@ -26,7 +26,7 @@ char *build_json_request(const PropertyGroup *group, err_t *errp)
     *errp = 0;
     size_t capacity = 64;
     size_t ofs = 0;
-    char *buffer = malloc(capacity);
+    char *buffer = safe_malloc(capacity);
     buffer[ofs++] = '{';
     for (size_t i = 0; i < group->size; i++) {
         Property *prop = &group->properties[i];
