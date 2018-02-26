@@ -20,12 +20,11 @@
 
 char *strtrim(char *str)
 {
-    char *s, *p;
-
-    for (s = str; isspace ((unsigned char) *s); s++) {
-        // just advance s
+    char *s = str;
+    while (isspace ((unsigned char) *s)) {
+        s++;
     }
-    p = s + strlen(s);
+    char *p = s + strlen(s);
     while ((p > s) && isspace ((unsigned char) p[-1])) {
         p--;
     }

@@ -109,7 +109,8 @@ static char *socket_read_text(AbstractSocket *absSocket, const char *terminator,
     SockReadBuffer *rb = &sock->readBuffer;
     char *data = NULL;
     size_t dataSize = 0;
-    for (;;) {
+    char *eos;
+    do {
         if (rb->position == 0) {
             rb->position = socket_read(sock, rb->data, sizeof(rb->data), tmout_ms, errp);
             if (*errp != 0) {
@@ -118,8 +119,8 @@ static char *socket_read_text(AbstractSocket *absSocket, const char *terminator,
         }
         // rb->filler makes this always safe
         rb->data[rb->position] = '\0';
-        char *p = strstr(rb->data, terminator);
-        size_t n = (p == NULL) ? rb->position : (p - rb->data) + strlen(terminator);
+        eos = strstr(rb->data, terminator);
+        size_t n = (eos == NULL) ? rb->position : (eos - rb->data) + strlen(terminator);
         if (n > 0) {
             // +1: always leave room for an extra '\0'
             data = realloc(data, dataSize + n + 1);
@@ -130,10 +131,7 @@ static char *socket_read_text(AbstractSocket *absSocket, const char *terminator,
                 memmove(rb->data, &rb->data[n], rb->position);
             }
         }
-        if (p != NULL) {
-            break;
-        }
-    }
+    } while (eos == NULL);
     if (*errp != 0) {
         free(data);
         data = NULL;

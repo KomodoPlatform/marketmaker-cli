@@ -112,7 +112,7 @@ add_executable(tests
         src/test/CppFile.h
         src/test/MockFile.h
         src/test/main.cc)
-target_link_libraries(tests gtest gmock_main)
+target_link_libraries(tests gtest gmock)
 if(WIN32)
     target_link_libraries(tests wsock32 ws2_32)
 endif()
