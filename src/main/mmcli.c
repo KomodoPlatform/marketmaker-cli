@@ -174,7 +174,10 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
 
 void print_syserr(const char *context, err_t err)
 {
-    fprintf(stderr, "***Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
+    fprintf(stderr, "*** Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
+    if (err == ECONNREFUSED) {
+        fprintf(stderr, "\n==> Please make sure marketmaker is running.\n");
+    }
 }
 
 void print_help(const char *programPath, const PropertyGroup *api)
@@ -235,7 +238,7 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
             print_syserr("loading config file", *errp);
             return NULL;
         } else {
-            fprintf(stderr, "*** You must configure URL and USERPASS first! Use the _config to provide these values.\n");
+            fprintf(stderr, "==> You must configure URL and USERPASS first! Use the _config to provide these values.\n");
             return NULL;
         }
     }
