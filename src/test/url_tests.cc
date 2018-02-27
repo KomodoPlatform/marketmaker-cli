@@ -28,5 +28,6 @@ INSTANTIATE_TEST_CASE_P(InvalidUrlTestCases, InvalidUrlTest, ::testing::Values(
         "https://localhost:7783",
         "localhost:7783",
         "http://localhost",
+        "http://271.0.0.1:7783",
         "http://localhost:70000"
 ));
