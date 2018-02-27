@@ -1,10 +1,9 @@
 # MarketMaker Command-Line Interface
 
 [![license](https://img.shields.io/github/license/eliezio/marketmaker-cli.svg)]()
-[![CI Build](https://travis-ci.org/eliezio/marketmaker-cli.svg?branch=master)]()
-[![codecov](https://codecov.io/gh/eliezio/marketmaker-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/eliezio/marketmaker-cli)
-[![appveor](https://ci.appveyor.com/api/projects/status/9ypi7qf3tmijn3jl?svg=true)](https://ci.appveyor.com/project/eliezio/marketmaker-cli)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=alert_status)](https://sonarcloud.io/dashboard?id=mmcli)
+[![build](https://travis-ci.org/eliezio/marketmaker-cli.svg?branch=master)](https://travis-ci.org/eliezio/marketmaker-cli)[![AppVeyor](https://ci.appveyor.com/api/projects/status/9ypi7qf3tmijn3jl?svg=true)](https://ci.appveyor.com/project/eliezio/marketmaker-cli)
+[![coverage](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=coverage)](https://sonarcloud.io/component_measures?id=mmcli&metric=coverage)
+[![quality gate](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=alert_status)](https://sonarcloud.io/dashboard?id=mmcli)
 
 This application is a CLI front-end to `marketmaker` API (barterDEX).
 It builds a JSON requests based on given arguments and display the results returned by the `marketmaker` (MM) back-end.
