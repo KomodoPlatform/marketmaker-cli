@@ -16,6 +16,7 @@ set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(PACKAGE_RELEASE "1")    # fixed
 message(STATUS "Version set to: " ${VERSION})
 
+configure_file(version.h.in include/version.h @ONLY)
 configure_file(sonar-project.properties.in sonar-project.properties @ONLY)
 
 set(CMAKE_C_STANDARD 99)
@@ -87,7 +88,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 
-include_directories("src/main")
+include_directories("src/main" ${CMAKE_BINARY_DIR}/include)
 
 add_executable(tests
         src/test/url_tests.cc

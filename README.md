@@ -38,7 +38,7 @@ $ ./marketmaker-cli _config http://127.0.0.1:7783 \
 To see the list of available methods and their respective parameters you can use:
 ```console
 $ ./marketmaker-cli -h   # or './marketmaker-cli --help'
-Syntax: ./marketmaker-cli [-h | --help | _config URL USERPASS | _refresh | method [-h | --help | params*]
+Syntax: ./marketmaker-cli [-h | --help | --version | _config URL USERPASS | _refresh | method [-h | --help | params*]
 
 Method                Parameters
 ====================  =============================================
