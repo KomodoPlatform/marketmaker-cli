@@ -24,7 +24,7 @@ $ cmake --build .
 
 ### Authentication
 
-To avoid the input of user credentials on every invocation, a pseudo-method name `_config` shall be used in order to
+To avoid the input of user credentials on every invocation, a pseudo-method named `_config` shall be used in order to
 cache this information on a local file (`$HOME/.mmcli.config`).
 
 Example:
