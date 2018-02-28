@@ -8,8 +8,10 @@ matrix:
   include:
     - os: linux
       compiler: gcc
+      env: OS_NAME=Linux BW_ARCH=linux-x86-64
     - os: osx
       compiler: clang
+      env: OS_NAME=Darwin BW_ARCH=macosx-x86
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update        ; fi
@@ -19,7 +21,7 @@ before_install:
 script:
   - cmake -DENABLE_GCOV=ON .
   # Wrap the compiled app in sonarqube
-  - build-wrapper-linux-x86-64 --out-dir bw-output cmake --build .
+  - build-wrapper-$BW_ARCH --out-dir bw-output cmake --build .
   - ./tests --gtest_output=xml:test_reports/
 
 after_success:
@@ -30,7 +32,6 @@ after_success:
 before_deploy:
   - cpack -G TGZ .
   - export VERSION_SHORT="$(cat version_short.txt)"
-  - export OS_NAME="$(uname -s)"
 
 deploy:
   provider: releases
