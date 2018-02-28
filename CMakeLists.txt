@@ -17,6 +17,7 @@ set(PACKAGE_RELEASE "1")    # fixed
 message(STATUS "Version set to: " ${VERSION})
 
 configure_file(version.h.in include/version.h @ONLY)
+configure_file(version_short.txt.in version_short.txt @ONLY)
 configure_file(sonar-project.properties.in sonar-project.properties @ONLY)
 
 set(CMAKE_C_STANDARD 99)

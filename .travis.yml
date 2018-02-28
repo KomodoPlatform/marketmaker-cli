@@ -24,7 +24,21 @@ after_success:
   - find . -type f -name '*.gcno' -exec gcov -pb {} +
   - sonar-scanner
 
+before_deploy:
+  - cpack -G TGZ .
+  - export VERSION="$(cat version_short.txt)"
+
+deploy:
+  provider: releases
+  api_key:
+  - secure: "FjUPmFKJ/BglsSSCPfrQwRpT039hn9mAVMNgw/fbsmnQQyDOFM6U7l/a70ett8wmpyuDf62zdC3Ka/b2Jcbu90YZPhCkW69cUnj8XNR1NOComy4EmvuNUqSXkVDmbyd7ascWqjfzxUHg7tYIIz9RU360F6XzlEixKT2jVaCqTQUtJH0im6KqmPSX3mcLmLRUJ4HIL8+D1jkWKpIeucLzdGEbjqfcrL7OHsTBkK2AZP8PMu0tv0fxoNmiIk6uxv7j3FHvLR6nsaannsKsiNk2r0o+zMx0iZXDSyABIF5nOFF6MG5qsbqX+mfDZgOuwA155a4zz70LWyLjrlZ+y4WXvSSMrof6XdDO8dN5Zf0z1Z1rU9LRpfKYPOKMPOk+iOZldQD6RCyhSNQzWhUahW96sQqbgvmno2I6e1uNO2dswfEgQo+reUEQI0avzixwFj7nK11sCkUDgfMvHfD93gjk7k3mpNkTFhcxwkqL1L62jmloAdulZvFj7NMVlANGvE2mnqiP4Q5nQu0D6cCqrAiVRt6/5xlRqcXNx33bQEuypQvXMBRuwB5J/BvrA6t94frg5BtUSraMPIqipXeC1CwhjyvqzygoQCOPtumw3Rzr2FmB7oQ+zocBZx/6l6WBXhhfAJyNeu6dIpbHZgxEVX0ZbnReDCHmg4GN2JTLZ6CzIFE="
+  file: marketmaker-cli-$VERSION.tar.gz
+  skip_cleanup: true
+  on:
+    tags: true
+
 cache:
   ccache: true
   directories:
     - '$HOME/.sonar/cache'
+
