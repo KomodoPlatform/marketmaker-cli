@@ -9,13 +9,18 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/;${CMAKE_MODULE_PATH}")
 include(cmake/GetGitRevisionDescription.cmake)
 git_describe(VERSION "--dirty")
 # parse the version information into pieces.
-string(REGEX REPLACE "^v([0-9]+)\\..*" "\\1" VERSION_MAJOR "${VERSION}")
-string(REGEX REPLACE "^v[0-9]+\\.([0-9]+).*" "\\1" VERSION_MINOR "${VERSION}")
-string(REGEX REPLACE "^v[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${VERSION}")
+if (NOT VERSION MATCHES "^v?([0-9]+)\\.([0-9]+)\\.([0-9]+).*")
+  message(FATAL_ERROR "Invalid version: " ${VERSION})
+endif()
+set(VERSION_MAJOR ${CMAKE_MATCH_1})
+set(VERSION_MINOR ${CMAKE_MATCH_2})
+set(VERSION_PATCH ${CMAKE_MATCH_3})
 set(VERSION_SHORT "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 set(PACKAGE_RELEASE "1")    # fixed
 message(STATUS "Version set to: " ${VERSION})
 
+configure_file(version.h.in include/version.h @ONLY)
+configure_file(version_short.txt.in version_short.txt @ONLY)
 configure_file(sonar-project.properties.in sonar-project.properties @ONLY)
 
 set(CMAKE_C_STANDARD 99)
@@ -85,9 +90,9 @@ download_project(PROJ googletest
 # when building with Visual Studio
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 
-include_directories("src/main")
+include_directories("src/main" ${CMAKE_BINARY_DIR}/include)
 
 add_executable(tests
         src/test/url_tests.cc
@@ -134,7 +139,6 @@ set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
 set(CPACK_RPM_PACKAGE_RELEASE ${PACKAGE_RELEASE})
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "MarketMaker Command-Line Interface")
-SET(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${VERSION_SHORT})
 set(CPACK_RPM_SPEC_INSTALL_POST "/bin/true")
 include(CPack)
 

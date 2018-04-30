@@ -200,7 +200,6 @@ TEST(PropertyGroupTests, saveProperties)
             "enable=coin\n"
             "goal=coin,val\n"
             "myprice=base,rel\n";
-    size_t expectedContentsLen = strlen(expectedContents);
 
     MockFile file;
     EXPECT_CALL(file, doOpen("/path/to/file", "w+b", _))

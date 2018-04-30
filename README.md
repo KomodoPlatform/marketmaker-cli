@@ -1,6 +1,6 @@
 # MarketMaker Command-Line Interface
 
-[![license](https://img.shields.io/github/license/eliezio/marketmaker-cli.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![build](https://travis-ci.org/eliezio/marketmaker-cli.svg?branch=master)](https://travis-ci.org/eliezio/marketmaker-cli)[![AppVeyor](https://ci.appveyor.com/api/projects/status/9ypi7qf3tmijn3jl?svg=true)](https://ci.appveyor.com/project/eliezio/marketmaker-cli)
 [![coverage](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=coverage)](https://sonarcloud.io/component_measures?id=mmcli&metric=coverage)
 [![quality gate](https://sonarcloud.io/api/project_badges/measure?project=mmcli&metric=alert_status)](https://sonarcloud.io/dashboard?id=mmcli)
@@ -8,15 +8,29 @@
 This application is a CLI front-end to `marketmaker` API (barterDEX).
 It builds a JSON requests based on given arguments and display the results returned by the `marketmaker` (MM) back-end.
 
-## How to build
+## Installation
+
+### Installing on OS X
+
+On OS X, and if you have Homebrew already installed, you can install marketmaker-cli in two easy steps:
+
+1. `brew tap eliezio/komodo`
+2. `brew install marketmaker-cli`
+
+### Building and installing from sources
+
+On other platforms you'll have to build from sources as explained below.
 
 The build system is based on CMake 3.2+. Follow these steps to build the application:
 
 ```console
+$ git clone THIS_REPO
+$ cd marketmaker-cli
 $ mkdir build
 $ cd build
 $ cmake ..
 $ cmake --build .
+$ make install
 ```
 
 ## Usage
@@ -38,7 +52,7 @@ $ ./marketmaker-cli _config http://127.0.0.1:7783 \
 To see the list of available methods and their respective parameters you can use:
 ```console
 $ ./marketmaker-cli -h   # or './marketmaker-cli --help'
-Syntax: ./marketmaker-cli [-h | --help | _config URL USERPASS | _refresh | method [-h | --help | params*]
+Syntax: ./marketmaker-cli [-h | --help | --version | _config URL USERPASS | _refresh | method [-h | --help | params*]
 
 Method                Parameters
 ====================  =============================================

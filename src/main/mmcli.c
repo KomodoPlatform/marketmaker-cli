@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "version.h"
 #include "property.h"
 #include "strutil.h"
 #include "api_help.h"
@@ -69,6 +70,10 @@ int main(int argc, char *argv[])
     argc -= 2;
     argv = &argv[2];
 
+    if (strequal(method, "--version")) {
+        printf("Version %s\n", APP_VERSION);
+        return EXIT_SUCCESS;
+    }
     PropertyGroup *config = handle_config(method, programPath, argc, argv, &err);
     if (config == NULL) {
         return (err == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -169,12 +174,15 @@ PropertyGroup *build_param_list(const char *method, const char *userpass, const 
 
 void print_syserr(const char *context, err_t err)
 {
-    fprintf(stderr, "***Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
+    fprintf(stderr, "*** Error while %s: errno=%d, msg=%s\n", context, err, strerror(err));
+    if (err == ECONNREFUSED) {
+        fprintf(stderr, "\n==> Please make sure marketmaker is running.\n");
+    }
 }
 
 void print_help(const char *programPath, const PropertyGroup *api)
 {
-    fprintf(stderr, "Syntax: %s [-h | --help | _config URL USERPASS | _refresh | method [-h | --help | params*]]\n", programPath);
+    fprintf(stderr, "Syntax: %s [-h | --help | --version | _config URL USERPASS | _refresh | method [-h | --help | params*]]\n", programPath);
     if (api != NULL) {
         print_help_api(stderr, api);
     }
@@ -230,7 +238,7 @@ PropertyGroup *handle_config(const char *method, const char *programPath, int ar
             print_syserr("loading config file", *errp);
             return NULL;
         } else {
-            fprintf(stderr, "*** You must configure URL and USERPASS first! Use the _config to provide these values.\n");
+            fprintf(stderr, "==> You must configure URL and USERPASS first! Use the _config to provide these values.\n");
             return NULL;
         }
     }
